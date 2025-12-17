@@ -66,7 +66,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" onClick={handleScrollToTop} className="text-sm font-bold text-primary hover:text-primaryDark transition-colors flex items-center gap-2">
-              <House size={18} />
+              <Home size={18} />
               <span>Inicio</span>
             </Link>
             <Link 
@@ -120,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden absolute top-28 left-0 w-full bg-white border-b border-primary/10 p-4 flex flex-col gap-4 shadow-xl z-50">
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="py-2 text-primary hover:bg-primary/5 rounded-lg px-4 flex items-center gap-2 font-bold">
-              <House size={18} />
+              <Home size={18} />
               <span>Inicio</span>
             </Link>
             <Link 
