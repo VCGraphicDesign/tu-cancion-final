@@ -1,15 +1,12 @@
 import { Order, SongRequest, User } from '../types';
 
-// ALMACENAMIENTO LOCAL (Simula base de datos en el navegador)
 const STORAGE_KEYS = {
   USER: 'tu_cancion_user',
   ORDERS: 'tu_cancion_orders',
 };
 
-// ================= AUTH SERVICE SIMULADO =================
-
+// ================= AUTH SERVICE =================
 export const authService = {
-  // Simula login social (Google)
   loginWithRedirect: async (provider: string): Promise<void> => {
     const fakeUser: User = { 
         uid: 'user_' + Math.random().toString(36).substr(2, 9), 
@@ -17,16 +14,9 @@ export const authService = {
         displayName: 'Usuario Demo' 
     };
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(fakeUser));
-    // Disparar evento para actualizar la UI inmediatamente
     window.dispatchEvent(new Event('storage'));
     return Promise.resolve(); 
   },
-
-  handleRedirectResult: async (): Promise<User | null> => {
-     return authService.getCurrentUser();
-  },
-
-  // Login con email
   loginWithEmail: async (email: string, password: string): Promise<User> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -37,67 +27,46 @@ export const authService = {
       }, 800);
     });
   },
-
-  // Registro con email
-  registerWithEmail: async (email: string, password: string, name: string): Promise<User> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-          const user: User = { uid: 'user_new_' + Math.floor(Math.random() * 1000), email, displayName: name };
-          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-          window.dispatchEvent(new Event('storage'));
-          resolve(user);
-        }, 800);
-      });
-  },
-
   logout: async () => {
     localStorage.removeItem(STORAGE_KEYS.USER);
     window.dispatchEvent(new Event('storage'));
     return Promise.resolve();
   },
-
-  // Observador de sesión (Simulado con eventos de localStorage)
   onAuthStateChanged: (callback: (user: User | null) => void) => {
-    // 1. Verificación inicial
     const user = authService.getCurrentUser();
     callback(user);
-
-    // 2. Escuchar cambios (login/logout)
-    const listener = () => {
-        callback(authService.getCurrentUser());
-    };
+    const listener = () => callback(authService.getCurrentUser());
     window.addEventListener('storage', listener);
-    
-    // Polling de seguridad por si el evento falla
     const interval = setInterval(listener, 1000);
-
     return () => {
         window.removeEventListener('storage', listener);
         clearInterval(interval);
     };
   },
-  
   getCurrentUser: (): User | null => {
     const u = localStorage.getItem(STORAGE_KEYS.USER);
     return u ? JSON.parse(u) : null;
   }
 };
 
-// ================= ORDER SERVICE SIMULADO =================
-
+// ================= ORDER SERVICE =================
 export const orderService = {
-  create: async (userId: string, request: SongRequest): Promise<Order> => {
+  // CORRECCIÓN AQUÍ: Ahora acepta "songs" como array o "request" como objeto único
+  create: async (userId: string, data: any): Promise<Order> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const estimatedPrice = calculateEstimatedPrice(request.genre, request.instruments, request.package);
+        const pkg = data.package || 'single';
+        const price = calculateEstimatedPrice('', [], pkg);
         
-        const newOrder: Order = {
+        const newOrder: any = {
           id: 'ord_' + Math.random().toString(36).substr(2, 9).toUpperCase(),
           userId,
           status: 'pending_payment',
-          request,
-          price: estimatedPrice,
-          depositAmount: estimatedPrice / 2,
+          package: pkg,
+          // Guardamos las canciones tanto si vienen como array o como objeto único
+          songs: data.songs || [data.request], 
+          price: price,
+          depositAmount: price / 2,
           createdAt: Date.now(),
         };
         
@@ -108,93 +77,20 @@ export const orderService = {
     });
   },
   
-  getOrder: async (orderId: string): Promise<Order | null> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-        const found = all.find((o: Order) => o.id === orderId);
-        resolve(found || null);
-      }, 500);
-    });
-  },
-  
   list: async (userId: string): Promise<Order[]> => {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-    return all.filter((o: Order) => o.userId === userId).sort((a: Order, b: Order) => b.createdAt - a.createdAt);
+    return all.filter((o: any) => o.userId === userId).sort((a: any, b: any) => b.createdAt - a.createdAt);
   },
 
-  getAll: async (): Promise<Order[]> => {
+  updateStatus: async (orderId: string, status: string): Promise<any> => {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-    return all.sort((a: Order, b: Order) => b.createdAt - a.createdAt);
-  },
-
-  updateStatus: async (orderId: string, status: Order['status'], url?: string): Promise<Order> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-            let updatedOrder = null;
-            const updatedList = all.map((o: Order) => {
-                if (o.id === orderId) {
-                    const newOrder = { ...o, status };
-                    if (status === 'preview_ready') {
-                        newOrder.previewUrl = url || 'https://drive.google.com/uc?export=download&id=1MDh3WHPjFOP3ovKsz9DaeQmAyiCmF_ho&confirm=t';
-                    }
-                    if (status === 'completed') {
-                        newOrder.finalUrl = url || 'https://drive.google.com/uc?export=download&id=1MDh3WHPjFOP3ovKsz9DaeQmAyiCmF_ho&confirm=t';
-                    }
-                    updatedOrder = newOrder;
-                    return newOrder;
-                }
-                return o;
-            });
-            localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updatedList));
-            resolve(updatedOrder!);
-        }, 500);
-    });
-  },
-
-  payDeposit: async (orderId: string): Promise<Order> => {
-     return new Promise((resolve) => {
-        setTimeout(() => {
-          const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-          let updatedOrder = null;
-          const updated = all.map((o: Order) => {
-             if (o.id === orderId) {
-                 updatedOrder = { ...o, status: 'deposit_paid' as Order['status'] };
-                 return updatedOrder;
-             }
-             return o;
-          });
-          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
-          resolve(updatedOrder!);
-        }, 1500);
-     });
-  },
-
-  payFinal: async (orderId: string): Promise<Order> => {
-    return new Promise((resolve) => {
-       setTimeout(() => {
-         const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-         let updatedOrder = null;
-         const updated = all.map((o: Order) => {
-            if (o.id === orderId) {
-                updatedOrder = { 
-                    ...o, 
-                    status: 'completed' as Order['status'], 
-                    finalUrl: 'https://drive.google.com/uc?export=download&id=1MDh3WHPjFOP3ovKsz9DaeQmAyiCmF_ho&confirm=t' 
-                };
-                return updatedOrder;
-            }
-            return o;
-         });
-         localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
-         resolve(updatedOrder!);
-       }, 1500);
-    });
- }
+    const updated = all.map((o: any) => o.id === orderId ? { ...o, status } : o);
+    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+    return updated.find((o: any) => o.id === orderId);
+  }
 };
 
-export const calculateEstimatedPrice = (genre: string, instruments: string[], pkg: 'single' | 'duo' | 'trio' = 'single'): number => {
+export const calculateEstimatedPrice = (_genre: string, _instruments: string[], pkg: string = 'single'): number => {
   if (pkg === 'duo') return 45000;
   if (pkg === 'trio') return 60000;
   return 30000;
