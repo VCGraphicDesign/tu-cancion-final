@@ -94,8 +94,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                         <LayoutDashboard className="text-accent" /> Panel de Producción
                     </h2>
                     <p className="text-gray-400 mt-1">Gestiona pedidos, produce canciones y entrega archivos.</p>
-                </div>
-                <div className="flex items-center gap-2 bg-surface p-1 rounded-lg border border-white/10 overflow-x-auto max-w-full">
+               <div className="flex items-center gap-2 bg-surface p-1 rounded-lg border border-white/10 overflow-x-auto max-w-full">
                     <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${filter === 'all' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}>Todos</button>
                     <button onClick={() => setFilter('deposit_paid')} className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${filter === 'deposit_paid' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}>Por Producir</button>
                     <button onClick={() => setFilter('preview_ready')} className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${filter === 'preview_ready' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}>En Aprobación</button>
@@ -103,11 +102,35 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                 </div>
             </div>
 
+            {/* SECCIÓN DE CONFIGURACIÓN DE PRECIOS */}
+            <div className="bg-surface border border-accent/20 rounded-2xl p-6 mb-8 shadow-xl">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <DollarSign className="text-accent" /> Configuración de Precios (Promociones)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm text-gray-400">Precio 1 Canción</label>
+                        <input type="number" placeholder="30000" className="w-full bg-bgDark border border-white/10 rounded-lg p-3 text-white focus:border-accent outline-none" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm text-gray-400">Precio 2 Canciones</label>
+                        <input type="number" placeholder="45000" className="w-full bg-bgDark border border-white/10 rounded-lg p-3 text-white focus:border-accent outline-none" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm text-gray-400">Precio 3 Canciones</label>
+                        <input type="number" placeholder="60000" className="w-full bg-bgDark border border-white/10 rounded-lg p-3 text-white focus:border-accent outline-none" />
+                    </div>
+                </div>
+                <button className="mt-6 bg-accent text-bgDark font-bold px-6 py-2 rounded-xl hover:bg-white transition-colors">
+                    Guardar Precios
+                </button>
+            </div>
+
             <div className="grid gap-6">
                 {filteredOrders.length === 0 ? (
-                     <div className="bg-surface border border-white/10 rounded-2xl p-12 text-center text-gray-500">
+                    <div className="bg-surface border border-white/10 rounded-2xl p-12 text-center text-gray-500">
                         No hay pedidos en esta categoría.
-                     </div>
+                    </div>
                 ) : filteredOrders.map((order) => (
                     <div key={order.id} className="bg-surface border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors shadow-lg group">
                         <div className="flex flex-col lg:flex-row gap-6">
