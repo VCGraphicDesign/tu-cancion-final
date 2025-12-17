@@ -9,7 +9,7 @@ interface CreateRequestProps {
   user: User | null;
 }
 
-const STEPS = ['Paquete', 'Estilo', 'Historia', 'Resumen'];
+const STEPS = ['VERSIÓN NUEVA', 'Estilo', 'Historia', 'Resumen'];
 
 const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const navigate = useNavigate();
