@@ -15,9 +15,24 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isEnhancing, setIsEnhancing] = useState(false);
-  const [formData, setFormData] = useState<SongRequest>({
-    package: 'single', genre: '', mood: '', occasion: '', singer: '', instruments: [], storyText: '', storyAudio: null,
+const [formData, setFormData] = useState<any>({
+    package: 'single',
+    songs: [{ genre: '', mood: '', occasion: '', storyText: '', singer: '', instruments: [] }]
   });
+
+  const getSongCount = () => {
+    if (formData.package === 'trio') return 3;
+    if (formData.package === 'duo') return 2;
+    return 1;
+  };
+
+  useEffect(() => {
+    const count = getSongCount();
+    const newSongs = Array(count).fill(null).map((_, i) => 
+      formData.songs[i] || { genre: '', mood: '', occasion: '', storyText: '', singer: '', instruments: [] }
+    );
+    setFormData(prev => ({ ...prev, songs: newSongs }));
+  }, [formData.package]);
   const [otherGenre, setOtherGenre] = useState('');
   const [otherOccasion, setOtherOccasion] = useState('');
   const price = calculateEstimatedPrice(formData.genre, formData.instruments, formData.package);
