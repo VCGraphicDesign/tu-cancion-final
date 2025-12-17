@@ -140,7 +140,7 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
           </div>
 
           <div className="md:col-span-2 order-1 md:order-2">
-            <h2 className="text-3xl font-serif font-bold text-white mb-8">Método de Pago</h2>
+            <h2 className="text-3xl font-serif font-bold text-white mb-8">MIS 5 METODOS</h2>
             <div className="bg-surface border border-white/10 rounded-2xl p-6 md:p-8">
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 {PAYMENT_METHODS.map((m) => (
