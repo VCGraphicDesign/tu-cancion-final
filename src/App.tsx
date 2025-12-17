@@ -12,7 +12,7 @@ import Legal from './pages/Legal';
 import { User } from './types';
 import { authService } from './services/mockBackend';
 
-console.log('App.tsx se está cargando (MODO SIMULACIÓN)...');
+console.log('Versión 2.0 - Corrección de Iconos');
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
