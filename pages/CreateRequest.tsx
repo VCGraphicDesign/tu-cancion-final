@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Mic, Upload, Wand2, Loader2, Zap, Gift, Music2 } from 'lucide-react';
@@ -9,7 +10,7 @@ interface CreateRequestProps {
   user: User | null;
 }
 
-const STEPS = ['Paquete', 'Estilo', 'Historia', 'Resumen'];
+const STEPS = ['Paquete', 'Personalización', 'Resumen'];
 
 const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const navigate = useNavigate();
@@ -37,9 +38,6 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
     setActiveSongIdx(0);
   }, [formData.package]);
 
-  const [otherGenre, setOtherGenre] = useState('');
-  const [otherOccasion, setOtherOccasion] = useState('');
-  
   const currentSong = formData.songs[activeSongIdx] || formData.songs[0];
   const price = calculateEstimatedPrice(currentSong.genre, currentSong.instruments, formData.package);
 
@@ -68,8 +66,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const handleEnhanceStory = async () => {
     if (!currentSong.storyText || currentSong.storyText.length < 20) return;
     setIsEnhancing(true);
-    const actualGenre = currentSong.genre === 'Otro' ? otherGenre : currentSong.genre;
-    const enhanced = await enhanceStory(currentSong.storyText, currentSong.mood, actualGenre);
+    const enhanced = await enhanceStory(currentSong.storyText, currentSong.mood, currentSong.genre);
     handleInputChange('storyText', enhanced);
     setIsEnhancing(false);
   };
@@ -78,18 +75,12 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
     const totalSongs = getSongCount();
 
     if (currentStep === 1) {
-      if (!currentSong.genre || !currentSong.mood || !currentSong.occasion || !currentSong.singer || currentSong.instruments.length === 0) {
-        return alert(`Completa los datos de la Canción ${activeSongIdx + 1}`);
+      // Validar estilo e historia de la canción actual
+      if (!currentSong.genre || !currentSong.mood || !currentSong.occasion || !currentSong.singer || currentSong.instruments.length === 0 || !currentSong.storyText) {
+        return alert(`Por favor, completa todos los campos y la historia de la Canción ${activeSongIdx + 1}`);
       }
-      if (activeSongIdx < totalSongs - 1) {
-        setActiveSongIdx(prev => prev + 1);
-        window.scrollTo(0, 0);
-        return;
-      }
-    }
-
-    if (currentStep === 2) {
-      if (!currentSong.storyText) return alert(`Escribe la historia de la Canción ${activeSongIdx + 1}`);
+      
+      // Si hay más canciones, pasar a la siguiente canción
       if (activeSongIdx < totalSongs - 1) {
         setActiveSongIdx(prev => prev + 1);
         window.scrollTo(0, 0);
@@ -103,31 +94,16 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   };
 
   const prevStep = () => {
-    if (activeSongIdx > 0) {
+    if (currentStep === 1 && activeSongIdx > 0) {
       setActiveSongIdx(prev => prev - 1);
     } else {
       setCurrentStep(prev => prev - 1);
-      setActiveSongIdx(getSongCount() - 1);
+      if (currentStep === 2) setActiveSongIdx(getSongCount() - 1);
     }
     window.scrollTo(0, 0);
   };
 
   const formatMoney = (amount: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
-
-  const SongTabs = () => (
-    <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-      {formData.songs.map((_: any, idx: number) => (
-        <button
-          key={idx}
-          type="button"
-          onClick={() => setActiveSongIdx(idx)}
-          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeSongIdx === idx ? 'bg-primary text-white' : 'bg-surface text-gray-500 border border-white/5'}`}
-        >
-          Canción {idx + 1}
-        </button>
-      ))}
-    </div>
-  );
 
   const renderStep0 = () => (
     <div className="space-y-6 animate-fade-in">
@@ -157,8 +133,16 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   );
 
   const renderStep1 = () => (
-    <div className="space-y-6 animate-fade-in">
-        <SongTabs />
+    <div className="space-y-8 animate-fade-in">
+        <div className="flex items-center justify-between bg-surface/50 p-4 rounded-xl border border-white/5">
+          <h3 className="text-accent font-bold">Configurando Canción {activeSongIdx + 1} de {getSongCount()}</h3>
+          <div className="flex gap-1">
+            {formData.songs.map((_: any, i: number) => (
+              <div key={i} className={`w-2 h-2 rounded-full ${i === activeSongIdx ? 'bg-accent' : 'bg-white/10'}`} />
+            ))}
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
             <div><label className="block text-sm font-medium text-gray-300 mb-2">Género</label>
             <select value={currentSong.genre} onChange={(e) => handleInputChange('genre', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white">
@@ -175,29 +159,28 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
             <div><label className="block text-sm font-medium text-gray-300 mb-2">Cantante</label>
             <div className="grid grid-cols-3 gap-2">{SINGERS.map((s) => (<button key={s.value} type="button" onClick={() => handleInputChange('singer', s.value)} className={`h-12 rounded-xl border text-sm font-medium ${currentSong.singer === s.value ? 'bg-accent text-bgDark' : 'bg-surface text-gray-400'}`}>{s.label.split(' ')[0]}</button>))}</div></div>
         </div>
-        <div><label className="block text-sm font-medium text-gray-300 mb-3">Instrumentos</label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">{INSTRUMENTS.map((inst) => (<button key={inst.value} type="button" onClick={() => toggleInstrument(inst.value)} className={`p-3 rounded-xl border text-sm ${currentSong.instruments.includes(inst.value) ? 'bg-primary/20 border-primary text-primary' : 'bg-surface border-white/10 text-gray-400'}`}>{inst.label}</button>))}</div></div>
-    </div>
-  );
 
-  const renderStep2 = () => (
-    <div className="space-y-6 animate-fade-in">
-        <SongTabs />
-        <div>
-            <div className="flex justify-between items-end mb-2"><label className="block text-sm font-medium text-gray-300">Historia de la Canción {activeSongIdx + 1}</label>
+        <div><label className="block text-sm font-medium text-gray-300 mb-3">Instrumentos (Máx. 4)</label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">{INSTRUMENTS.map((inst) => (<button key={inst.value} type="button" onClick={() => toggleInstrument(inst.value)} className={`p-3 rounded-xl border text-sm ${currentSong.instruments.includes(inst.value) ? 'bg-primary/20 border-primary text-primary' : 'bg-surface border-white/10 text-gray-400'}`}>{inst.label}</button>))}</div></div>
+
+        <div className="pt-4 border-t border-white/5">
+            <div className="flex justify-between items-end mb-2"><label className="block text-sm font-medium text-gray-300">Historia de esta canción</label>
             <button type="button" onClick={handleEnhanceStory} disabled={isEnhancing || !currentSong.storyText} className="text-xs flex items-center gap-1 text-accent disabled:opacity-50">{isEnhancing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar con IA</button></div>
-            <textarea value={currentSong.storyText} onChange={(e) => handleInputChange('storyText', e.target.value)} maxLength={2000} className="w-full h-64 bg-surface border border-white/10 rounded-xl p-4 text-white resize-none" placeholder="Cuéntanos la historia para esta canción..."></textarea>
+            <textarea value={currentSong.storyText} onChange={(e) => handleInputChange('storyText', e.target.value)} maxLength={2000} className="w-full h-48 bg-surface border border-white/10 rounded-xl p-4 text-white resize-none" placeholder="Cuéntanos los detalles, nombres o momentos clave para esta canción específica..."></textarea>
         </div>
     </div>
   );
 
-  const renderStep3 = () => (
+  const renderStep2 = () => (
     <div className="animate-fade-in">
         <div className="bg-surface border border-white/10 rounded-2xl p-6 md:p-8 mb-8">
-            <h3 className="text-xl font-serif font-bold mb-6 border-b border-white/10 pb-4">Resumen Final</h3>
-            <div className="space-y-3 mb-6">
+            <h3 className="text-xl font-serif font-bold mb-6 border-b border-white/10 pb-4">Resumen de tu pedido</h3>
+            <div className="space-y-4 mb-8">
               {formData.songs.map((s: any, i: number) => (
-                <div key={i} className="flex justify-between text-sm"><span className="text-gray-400">Canción {i+1}:</span><span className="text-white">{s.genre} - {s.occasion}</span></div>
+                <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-accent font-bold text-sm mb-1">Canción {i+1}</p>
+                  <p className="text-white text-sm">{s.genre} • {s.mood} • {s.occasion}</p>
+                </div>
               ))}
             </div>
             <div className="bg-bgDark rounded-xl p-4 mb-6">
@@ -219,19 +202,23 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
                     </div>
                 ))}
             </div>
-            <h2 className="text-3xl font-serif font-bold text-center mb-10">{currentStep === 0 && 'Plan'} {currentStep === 1 && 'Estilo'} {currentStep === 2 && 'Historia'} {currentStep === 3 && 'Pagar'}</h2>
+            <h2 className="text-3xl font-serif font-bold text-center mb-10">
+              {currentStep === 0 && 'Elige tu Plan'} 
+              {currentStep === 1 && 'Personalización'} 
+              {currentStep === 2 && 'Confirmar'}
+            </h2>
             <form onSubmit={(e) => e.preventDefault()}>
                 {currentStep === 0 && renderStep0()}
                 {currentStep === 1 && renderStep1()}
                 {currentStep === 2 && renderStep2()}
-                {currentStep === 3 && renderStep3()}
                 <div className="mt-10 flex justify-between">
                     {currentStep > 0 && <button type="button" onClick={prevStep} className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white flex items-center gap-2"><ChevronLeft size={18} /> Anterior</button>}
-                    {currentStep < 3 && <button type="button" onClick={nextStep} className="ml-auto px-8 py-3 bg-primary text-white rounded-xl hover:bg-primaryDark font-bold flex items-center gap-2">Siguiente <ChevronRight size={18} /></button>}
+                    {currentStep < 2 && <button type="button" onClick={nextStep} className="ml-auto px-8 py-3 bg-primary text-white rounded-xl hover:bg-primaryDark font-bold flex items-center gap-2">Siguiente <ChevronRight size={18} /></button>}
                 </div>
             </form>
         </div>
     </div>
   );
 };
+
 export default CreateRequest;
