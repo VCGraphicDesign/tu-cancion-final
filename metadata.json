@@ -1,0 +1,7 @@
+{
+  "name": "Tu Canción final",
+  "description": "Una plataforma para crear canciones personalizadas basadas en tus historias y emociones. No dejes que se borre lo que sientes.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
