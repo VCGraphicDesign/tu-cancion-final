@@ -142,7 +142,7 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
           <div className="md:col-span-2 order-1 md:order-2">
             <h2 className="text-3xl font-serif font-bold text-white mb-8">Método de Pago</h2>
             <div className="bg-surface border border-white/10 rounded-2xl p-6 md:p-8">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 {PAYMENT_METHODS.map((m) => (
                     <button key={m.id} onClick={() => setMethod(m.id)} className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 h-32 ${method === m.id ? `bg-white/5 ${m.color} text-white border-2` : 'bg-transparent border-white/10 text-gray-400'}`}>{m.icon}<span className="font-bold text-xs">{m.label}</span></button>
                 ))}
