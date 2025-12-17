@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Mic, Upload, CheckCircle2, Wand2, PlayCircle, Loader2, Zap, Gift, Music2 } from 'lucide-react';
-import { GENRES, MOODS, OCCASIONS, SINGERS, INSTRUMENTS, SongRequest, User } from '../types';
+import { ChevronRight, ChevronLeft, Mic, Upload, Wand2, Loader2, Zap, Gift, Music2 } from 'lucide-react';
+import { GENRES, MOODS, OCCASIONS, SINGERS, INSTRUMENTS, User } from '../types';
 import { calculateEstimatedPrice } from '../services/mockBackend';
 import { enhanceStory } from '../services/geminiService';
 
@@ -9,64 +9,125 @@ interface CreateRequestProps {
   user: User | null;
 }
 
-const STEPS = ['VERSIÓN NUEVA', 'Estilo', 'Historia', 'Resumen'];
+const STEPS = ['Paquete', 'Estilo', 'Historia', 'Resumen'];
 
 const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
+  const [activeSongIdx, setActiveSongIdx] = useState(0);
   const [isEnhancing, setIsEnhancing] = useState(false);
-  const [formData, setFormData] = useState<SongRequest>({
-    package: 'single', genre: '', mood: '', occasion: '', singer: '', instruments: [], storyText: '', storyAudio: null,
+  
+  const [formData, setFormData] = useState<any>({
+    package: 'single',
+    songs: [{ genre: '', mood: '', occasion: '', storyText: '', singer: '', instruments: [] }]
   });
+
+  const getSongCount = () => {
+    if (formData.package === 'trio') return 3;
+    if (formData.package === 'duo') return 2;
+    return 1;
+  };
+
+  useEffect(() => {
+    const count = getSongCount();
+    const newSongs = Array(count).fill(null).map((_, i) => 
+      formData.songs[i] || { genre: '', mood: '', occasion: '', storyText: '', singer: '', instruments: [] }
+    );
+    setFormData((prev: any) => ({ ...prev, songs: newSongs }));
+    setActiveSongIdx(0);
+  }, [formData.package]);
+
   const [otherGenre, setOtherGenre] = useState('');
   const [otherOccasion, setOtherOccasion] = useState('');
-  const price = calculateEstimatedPrice(formData.genre, formData.instruments, formData.package);
+  
+  const currentSong = formData.songs[activeSongIdx] || formData.songs[0];
+  const price = calculateEstimatedPrice(currentSong.genre, currentSong.instruments, formData.package);
 
   useEffect(() => { if (!user) navigate('/auth'); }, [user, navigate]);
 
-  const handleInputChange = (field: keyof SongRequest, value: any) => setFormData(prev => ({ ...prev, [field]: value }));
-  
+  const handleInputChange = (field: string, value: any) => {
+    if (field === 'package') {
+      setFormData((prev: any) => ({ ...prev, [field]: value }));
+    } else {
+      setFormData((prev: any) => {
+        const newSongs = [...prev.songs];
+        newSongs[activeSongIdx] = { ...newSongs[activeSongIdx], [field]: value };
+        return { ...prev, songs: newSongs };
+      });
+    }
+  };
+
   const toggleInstrument = (inst: string) => {
-    setFormData(prev => {
-        const current = prev.instruments;
-        if (current.includes(inst)) return { ...prev, instruments: current.filter(i => i !== inst) };
-        if (current.length >= 4) return prev; 
-        return { ...prev, instruments: [...current, inst] };
-    });
+    const currentInsts = currentSong.instruments || [];
+    const updated = currentInsts.includes(inst)
+      ? currentInsts.filter((i: string) => i !== inst)
+      : currentInsts.length < 4 ? [...currentInsts, inst] : currentInsts;
+    handleInputChange('instruments', updated);
   };
 
   const handleEnhanceStory = async () => {
-    if (!formData.storyText || formData.storyText.length < 20) return;
+    if (!currentSong.storyText || currentSong.storyText.length < 20) return;
     setIsEnhancing(true);
-    const actualGenre = formData.genre === 'Otro' ? otherGenre : formData.genre;
-    const enhanced = await enhanceStory(formData.storyText, formData.mood, actualGenre);
-    setFormData(prev => ({ ...prev, storyText: enhanced }));
+    const actualGenre = currentSong.genre === 'Otro' ? otherGenre : currentSong.genre;
+    const enhanced = await enhanceStory(currentSong.storyText, currentSong.mood, actualGenre);
+    handleInputChange('storyText', enhanced);
     setIsEnhancing(false);
   };
 
-  const handleGoToCheckout = () => {
-    if(!user) return;
-    const finalData = {
-        ...formData,
-        genre: formData.genre === 'Otro' ? otherGenre : formData.genre,
-        occasion: formData.occasion === 'Otro' ? otherOccasion : formData.occasion
-    };
-    navigate('/checkout', { state: { orderData: finalData, price: price } });
-  };
-
   const nextStep = () => {
-      if (currentStep === 1) {
-          if(!formData.genre || !formData.mood || !formData.occasion || !formData.singer || formData.instruments.length === 0) return alert("Completa todos los campos.");
-          if (formData.genre === 'Otro' && !otherGenre.trim()) return alert("Especifica el género.");
-          if (formData.occasion === 'Otro' && !otherOccasion.trim()) return alert("Especifica la ocasión.");
+    const totalSongs = getSongCount();
+
+    if (currentStep === 1) {
+      if (!currentSong.genre || !currentSong.mood || !currentSong.occasion || !currentSong.singer || currentSong.instruments.length === 0) {
+        return alert(`Completa los datos de la Canción ${activeSongIdx + 1}`);
       }
-      if (currentStep === 2 && !formData.storyText) return alert("Escribe tu historia.");
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo(0, 0);
+      if (activeSongIdx < totalSongs - 1) {
+        setActiveSongIdx(prev => prev + 1);
+        window.scrollTo(0, 0);
+        return;
+      }
+    }
+
+    if (currentStep === 2) {
+      if (!currentSong.storyText) return alert(`Escribe la historia de la Canción ${activeSongIdx + 1}`);
+      if (activeSongIdx < totalSongs - 1) {
+        setActiveSongIdx(prev => prev + 1);
+        window.scrollTo(0, 0);
+        return;
+      }
+    }
+
+    setCurrentStep(prev => prev + 1);
+    setActiveSongIdx(0);
+    window.scrollTo(0, 0);
   };
 
-  const prevStep = () => { setCurrentStep(prev => prev - 1); window.scrollTo(0, 0); };
+  const prevStep = () => {
+    if (activeSongIdx > 0) {
+      setActiveSongIdx(prev => prev - 1);
+    } else {
+      setCurrentStep(prev => prev - 1);
+      setActiveSongIdx(getSongCount() - 1);
+    }
+    window.scrollTo(0, 0);
+  };
+
   const formatMoney = (amount: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
+
+  const SongTabs = () => (
+    <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      {formData.songs.map((_: any, idx: number) => (
+        <button
+          key={idx}
+          type="button"
+          onClick={() => setActiveSongIdx(idx)}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeSongIdx === idx ? 'bg-primary text-white' : 'bg-surface text-gray-500 border border-white/5'}`}
+        >
+          Canción {idx + 1}
+        </button>
+      ))}
+    </div>
+  );
 
   const renderStep0 = () => (
     <div className="space-y-6 animate-fade-in">
@@ -81,7 +142,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
             </button>
             <button type="button" onClick={() => handleInputChange('package', 'duo')} className={`relative p-6 rounded-2xl border-2 transition-all ${formData.package === 'duo' ? 'bg-accent/20 border-accent' : 'bg-surface border-white/10'}`}>
                 <div className="absolute top-0 right-0 bg-accent text-bgDark text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">-25%</div>
-                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4 mx-auto"><Music2 size={20} /><Music2 size={20} /></div>
+                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4 mx-auto"><div className="flex"><Music2 size={18}/><Music2 size={18}/></div></div>
                 <h4 className="text-xl font-bold text-white text-center mb-2">2 Canciones</h4>
                 <div className="text-center"><span className="text-2xl font-bold text-white">$45.000</span></div>
             </button>
@@ -96,28 +157,36 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   );
 
   const renderStep1 = () => (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
+        <SongTabs />
         <div className="grid md:grid-cols-2 gap-6">
-            <div><label className="block text-sm font-medium text-gray-300 mb-2">Género</label><select value={formData.genre} onChange={(e) => handleInputChange('genre', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white"><option value="">Selecciona...</option>{GENRES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-            {formData.genre === 'Otro' && <input type="text" value={otherGenre} onChange={(e) => setOtherGenre(e.target.value)} placeholder="Especifica..." className="mt-2 w-full h-10 bg-surface border border-white/10 rounded-lg px-4 text-white" />}</div>
-            <div><label className="block text-sm font-medium text-gray-300 mb-2">Ánimo</label><select value={formData.mood} onChange={(e) => handleInputChange('mood', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white"><option value="">Selecciona...</option>{MOODS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
-            <div><label className="block text-sm font-medium text-gray-300 mb-2">Ocasión</label><select value={formData.occasion} onChange={(e) => handleInputChange('occasion', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white"><option value="">Selecciona...</option>{OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-            {formData.occasion === 'Otro' && <input type="text" value={otherOccasion} onChange={(e) => setOtherOccasion(e.target.value)} placeholder="Especifica..." className="mt-2 w-full h-10 bg-surface border border-white/10 rounded-lg px-4 text-white" />}</div>
-            <div><label className="block text-sm font-medium text-gray-300 mb-2">Cantante</label><div className="grid grid-cols-3 gap-2">{SINGERS.map((s) => (<button key={s.value} type="button" onClick={() => handleInputChange('singer', s.value)} className={`h-12 rounded-xl border text-sm font-medium ${formData.singer === s.value ? 'bg-accent text-bgDark' : 'bg-surface text-gray-400'}`}>{s.label.split(' ')[0]}</button>))}</div></div>
+            <div><label className="block text-sm font-medium text-gray-300 mb-2">Género</label>
+            <select value={currentSong.genre} onChange={(e) => handleInputChange('genre', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white">
+              <option value="">Selecciona...</option>{GENRES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select></div>
+            <div><label className="block text-sm font-medium text-gray-300 mb-2">Ánimo</label>
+            <select value={currentSong.mood} onChange={(e) => handleInputChange('mood', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white">
+              <option value="">Selecciona...</option>{MOODS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select></div>
+            <div><label className="block text-sm font-medium text-gray-300 mb-2">Ocasión</label>
+            <select value={currentSong.occasion} onChange={(e) => handleInputChange('occasion', e.target.value)} className="w-full h-12 bg-surface border border-white/10 rounded-xl px-4 text-white">
+              <option value="">Selecciona...</option>{OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select></div>
+            <div><label className="block text-sm font-medium text-gray-300 mb-2">Cantante</label>
+            <div className="grid grid-cols-3 gap-2">{SINGERS.map((s) => (<button key={s.value} type="button" onClick={() => handleInputChange('singer', s.value)} className={`h-12 rounded-xl border text-sm font-medium ${currentSong.singer === s.value ? 'bg-accent text-bgDark' : 'bg-surface text-gray-400'}`}>{s.label.split(' ')[0]}</button>))}</div></div>
         </div>
-        <div><label className="block text-sm font-medium text-gray-300 mb-3">Instrumentos</label><div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">{INSTRUMENTS.map((inst) => (<button key={inst.value} type="button" onClick={() => toggleInstrument(inst.value)} className={`p-3 rounded-xl border text-sm ${formData.instruments.includes(inst.value) ? 'bg-primary/20 border-primary text-primary' : 'bg-surface border-white/10 text-gray-400'}`}>{inst.label}</button>))}</div></div>
+        <div><label className="block text-sm font-medium text-gray-300 mb-3">Instrumentos</label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">{INSTRUMENTS.map((inst) => (<button key={inst.value} type="button" onClick={() => toggleInstrument(inst.value)} className={`p-3 rounded-xl border text-sm ${currentSong.instruments.includes(inst.value) ? 'bg-primary/20 border-primary text-primary' : 'bg-surface border-white/10 text-gray-400'}`}>{inst.label}</button>))}</div></div>
     </div>
   );
 
   const renderStep2 = () => (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
+        <SongTabs />
         <div>
-            <div className="flex justify-between items-end mb-2"><label className="block text-sm font-medium text-gray-300">Tu historia</label><button type="button" onClick={handleEnhanceStory} disabled={isEnhancing || !formData.storyText} className="text-xs flex items-center gap-1 text-accent disabled:opacity-50">{isEnhancing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar con IA</button></div>
-            <textarea value={formData.storyText} onChange={(e) => handleInputChange('storyText', e.target.value)} maxLength={2000} className="w-full h-64 bg-surface border border-white/10 rounded-xl p-4 text-white resize-none" placeholder="Cuéntanos..."></textarea>
-        </div>
-        <div className="bg-surface border border-white/10 rounded-xl p-6">
-            <h4 className="text-sm font-medium text-white mb-4 flex items-center gap-2"><Mic size={18} className="text-accent" /> Audio (Opcional)</h4>
-            <label className="w-full cursor-pointer h-32 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5"><input type="file" className="hidden" accept="audio/*" onChange={(e) => handleInputChange('storyAudio', e.target.files?.[0])} /><Upload className="text-gray-500" /><span className="text-sm text-gray-500">{formData.storyAudio ? formData.storyAudio.name : "Subir audio"}</span></label>
+            <div className="flex justify-between items-end mb-2"><label className="block text-sm font-medium text-gray-300">Historia de la Canción {activeSongIdx + 1}</label>
+            <button type="button" onClick={handleEnhanceStory} disabled={isEnhancing || !currentSong.storyText} className="text-xs flex items-center gap-1 text-accent disabled:opacity-50">{isEnhancing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar con IA</button></div>
+            <textarea value={currentSong.storyText} onChange={(e) => handleInputChange('storyText', e.target.value)} maxLength={2000} className="w-full h-64 bg-surface border border-white/10 rounded-xl p-4 text-white resize-none" placeholder="Cuéntanos la historia para esta canción..."></textarea>
         </div>
     </div>
   );
@@ -125,11 +194,16 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const renderStep3 = () => (
     <div className="animate-fade-in">
         <div className="bg-surface border border-white/10 rounded-2xl p-6 md:p-8 mb-8">
-            <h3 className="text-xl font-serif font-bold mb-6 border-b border-white/10 pb-4">Resumen</h3>
+            <h3 className="text-xl font-serif font-bold mb-6 border-b border-white/10 pb-4">Resumen Final</h3>
+            <div className="space-y-3 mb-6">
+              {formData.songs.map((s: any, i: number) => (
+                <div key={i} className="flex justify-between text-sm"><span className="text-gray-400">Canción {i+1}:</span><span className="text-white">{s.genre} - {s.occasion}</span></div>
+              ))}
+            </div>
             <div className="bg-bgDark rounded-xl p-4 mb-6">
                 <div className="flex justify-between items-center text-accent"><span className="text-sm font-medium">Depósito Inicial (50%)</span><span className="text-lg font-bold">{formatMoney(price / 2)}</span></div>
             </div>
-            <button onClick={handleGoToCheckout} className="w-full py-4 bg-accent text-bgDark font-bold rounded-xl hover:bg-orange-400 flex items-center justify-center gap-2 shadow-lg">Continuar al Pago</button>
+            <button onClick={() => navigate('/checkout', { state: { orderData: formData, price: price } })} className="w-full py-4 bg-accent text-bgDark font-bold rounded-xl hover:bg-orange-400 flex items-center justify-center gap-2 shadow-lg">Continuar al Pago</button>
         </div>
     </div>
   );
