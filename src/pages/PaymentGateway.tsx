@@ -17,6 +17,8 @@ const PAYMENT_METHODS = [
   { id: 'card', label: 'Crédito/Débito', icon: <CreditCard size={24} />, color: 'border-primary' },
   { id: 'paypal', label: 'PayPal', icon: <Globe size={24} />, color: 'border-[#003087]' },
   { id: 'mercadopago', label: 'Mercado Pago', icon: <Wallet size={24} />, color: 'border-[#009EE3]' },
+  { id: 'onepay', label: 'Onepay', icon: <ShieldCheck size={24} />, color: 'border-[#f37021]' },
+  { id: 'transferencia', label: 'Transf. Bancaria', icon: <ExternalLink size={24} />, color: 'border-white' },
 ];
 
 const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
