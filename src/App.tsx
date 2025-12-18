@@ -12,8 +12,6 @@ import Legal from './pages/Legal';
 import { User } from './types';
 import { authService } from './services/mockBackend';
 
-console.log('Versión 2.0 - Corrección de Iconos');
-
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +33,7 @@ const App: React.FC = () => {
     setUser(null);
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary">Cargando...</div>;
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-orange-500">Cargando...</div>;
 
   return (
     <Router>
@@ -47,7 +45,6 @@ const App: React.FC = () => {
           <Route path="/auth" element={user ? <Navigate to="/dashboard" /> : <Auth onLogin={handleLogin} />} />
           <Route path="/create" element={<CreateRequest user={user} />} />
           <Route path="/checkout" element={<PaymentGateway user={user} />} />
-          {/* Dynamic route for direct payment links (Final Balance) */}
           <Route path="/pay/:orderId" element={<PaymentGateway user={user} />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/admin" element={<Admin user={user} />} />
