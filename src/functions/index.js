@@ -1,8 +1,7 @@
 /**
  * BACKEND REAL - TU CANCIÓN
  * Requiere Plan Blaze en Firebase
- * 
- * Despliegue: firebase deploy --only functions
+ * * Despliegue: firebase deploy --only functions
  */
 
 const functions = require("firebase-functions");
