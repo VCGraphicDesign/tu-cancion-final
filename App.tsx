@@ -6,7 +6,7 @@ import Examples from './pages/Examples';
 import Auth from './pages/Auth';
 import CreateRequest from './pages/CreateRequest';
 import Dashboard from './pages/Dashboard';
-import PaymentGateway from './pages/PaymentGateway';
+import PaymentGateway from './src/pages/PaymentGateway';
 import Admin from './pages/Admin';
 import Legal from './pages/Legal';
 import { User } from './types';
