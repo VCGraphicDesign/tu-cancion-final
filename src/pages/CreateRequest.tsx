@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Music, Heart, Star, Sparkles, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { 
+  Music, Heart, Star, Sparkles, ChevronRight, ChevronLeft, Mic, 
+  Upload, CheckCircle2, Wand2, PlayCircle, Loader2, Zap, Gift, Music2 
+} from 'lucide-react';
+import { GENRES, MOODS, OCCASIONS, SINGERS, INSTRUMENTS, SongRequest, User } from '../types';
+import { calculateEstimatedPrice } from '../services/mockBackend';
+import { enhanceStory } from '../services/geminiservice';
 
-// --- TIPOS DE DATOS ---
-interface SongDetails {
-  genre: string;
-  mood: string;
-  occasion: string;
-  singer: string;
-  instruments: string[];
-  story: string;
+interface CreateRequestProps {
+  user: User | null;
 }
 
 interface Package {
@@ -22,211 +22,188 @@ interface Package {
   tag?: string;
 }
 
-const CreateRequest: React.FC = () => {
+const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const navigate = useNavigate();
-  
-  // --- ESTADOS ---
-  const [step, setStep] = useState(1); // 1: Pack, 2: Estilo, 3: Historia, 4: Resumen
+  const [step, setStep] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
-  const [songsData, setSongsData] = useState<SongDetails[]>([]);
-
-  // Datos temporales para la canción que se está editando
-  const [tempSong, setTempSong] = useState<SongDetails>({
-    genre: '', mood: '', occasion: '', singer: '', instruments: [], story: ''
-  });
-
-  // --- CONFIGURACIÓN DE LISTAS INTEGRADAS (TUS CAPTURAS + MIS COMPLEMENTOS) ---
-  const GENRES = [
-    "Rock", "Pop", "Balada Romántica", "Funk", "Reguetón", "Flamenco", 
-    "Electrónica", "Clásica", "Folk", "Urbano", "Cumbia", "Bolero", 
-    "Blues", "Tango", "Reggae", "Jazz", "Indie", "Salsa", "Bachata", "Otro"
-  ];
-  
-  const MOODS = ["Alegre", "Triste", "Bailable", "Romántico", "Melancólico", "Inspirador", "Relajado", "Épico"];
-  
-  const OCCASIONS = ["Aniversario", "Cumpleaños", "Despedida", "Amor", "Nacimiento", "Matrimonio", "Graduación", "Otro"];
-  
-  const INSTRUMENTS = [
-    "Guitarra acústica", "Guitarra eléctrica", "Bajo", "Piano", "Batería", 
-    "Violín", "Saxofón", "Flauta", "Sintetizador", "Trompeta", "Percusión latina", "Cajón Flamenco"
-  ];
+  const [songsData, setSongsData] = useState<Partial<SongRequest>[]>([]);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const PACKAGES: Package[] = [
-    { id: '1', name: '1 Canción', songs: 1, price: 30000, description: 'Perfecto para un detalle único', icon: <Music className="w-8 h-8" /> },
-    { id: '2', name: '2 Canciones', songs: 2, price: 45000, description: 'La segunda al 50%', icon: <Music className="w-8 h-8" />, tag: '-25%' },
-    { id: '3', name: '3 Canciones', songs: 3, price: 60000, description: '¡Mejor oferta! Llevas 3 pagas 2', icon: <Star className="w-8 h-8" />, tag: '3x2 (1 Gratis)' }
+    {
+      id: 'single',
+      name: '1 Canción',
+      songs: 1,
+      price: 45000,
+      description: 'Una canción personalizada perfecta para un regalo especial.',
+      icon: <Music className="w-6 h-6" />
+    },
+    {
+      id: 'double',
+      name: 'Pack 2 Canciones',
+      songs: 2,
+      price: 75000,
+      description: 'Dos canciones personalizadas. ¡Ahorra con este pack!',
+      icon: <div className="flex"><Music className="w-6 h-6" /><Music className="w-6 h-6 -ml-2" /></div>,
+      tag: 'Más Popular'
+    }
   ];
 
-  // --- LÓGICA DE NAVEGACIÓN ---
+  const handlePackageSelect = (pkg: Package) => {
+    setSelectedPackage(pkg);
+    setSongsData(Array(pkg.songs).fill({
+      genre: '',
+      mood: '',
+      occasion: '',
+      singer: '',
+      instruments: [],
+      story: ''
+    }));
+    setStep(2);
+  };
+
+  const updateCurrentSong = (data: Partial<SongRequest>) => {
+    const newSongsData = [...songsData];
+    newSongsData[currentSongIndex] = { ...newSongsData[currentSongIndex], ...data };
+    setSongsData(newSongsData);
+  };
+
   const handleNext = () => {
-    if (step === 1 && selectedPackage) {
-      setStep(2);
-    } else if (step === 2) {
+    if (step === 2) {
       setStep(3);
     } else if (step === 3) {
-      // Guardar datos de la canción actual en el array global
-      const updatedSongs = [...songsData];
-      updatedSongs[currentSongIndex] = tempSong;
-      setSongsData(updatedSongs);
-
-      // Verificar si faltan más canciones por configurar en el paquete elegido
-      if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) {
-        setCurrentSongIndex(currentSongIndex + 1);
-        // Reiniciar datos temporales para la siguiente canción
-        setTempSong({ genre: '', mood: '', occasion: '', singer: '', instruments: [], story: '' });
-        setStep(2); // Volver al paso de Estilo para la nueva canción
+      if (selectedPackage?.songs === 2 && currentSongIndex === 0) {
+        setCurrentSongIndex(1);
+        setStep(2);
+        window.scrollTo(0, 0);
       } else {
-        setStep(4); // Ir al resumen final de todas las canciones
+        setStep(4);
       }
     }
   };
 
   const handleBack = () => {
-    if (step === 2 && currentSongIndex > 0) {
-      // Si estamos en la canción 2 o 3 y volvemos atrás, regresamos a la historia de la canción anterior
-      setCurrentSongIndex(currentSongIndex - 1);
-      setTempSong(songsData[currentSongIndex - 1]);
+    if (step === 2 && currentSongIndex === 1) {
+      setCurrentSongIndex(0);
       setStep(3);
     } else {
       setStep(step - 1);
     }
   };
 
-  const toggleInstrument = (inst: string) => {
-    setTempSong(prev => ({
-      ...prev,
-      instruments: prev.instruments.includes(inst)
-        ? prev.instruments.filter(i => i !== inst)
-        : [...prev.instruments, inst]
-    }));
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    try {
+      // Cálculo del 50% para el pago inicial
+      const totalPrice = selectedPackage?.price || 0;
+      const initialPayment = totalPrice / 2;
+      
+      console.log(`Iniciando pago de: $${initialPayment} (50% de $${totalPrice})`);
+      
+      // Aquí simulamos la redirección a la pasarela
+      setTimeout(() => {
+        alert(`Redirigiendo a Webpay para el pago inicial del 50%: $${initialPayment.toLocaleString('es-CL')}`);
+        setIsProcessing(false);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error en el pago:', error);
+      setIsProcessing(false);
+    }
   };
 
+  const currentSong = songsData[currentSongIndex] || {};
+
   return (
-    <div className="min-h-screen bg-black text-white py-20 px-4">
+    <div className="min-h-screen bg-black text-white pt-24 pb-12 px-4">
       <div className="max-w-4xl mx-auto">
-        
-        {/* BARRA DE PROGRESO - ESTÉTICA VERCEL */}
+        {/* INDICADOR DE PASOS */}
         <div className="flex justify-between mb-12 relative">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex flex-col items-center z-10">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                step >= s ? 'bg-orange-500 border-orange-500 text-black font-bold' : 'bg-gray-900 border-gray-700'
-              }`}>
-                {step > s ? <CheckCircle2 className="w-6 h-6" /> : s}
-              </div>
-              <span className={`text-xs mt-2 ${step >= s ? 'text-orange-500' : 'text-gray-400'}`}>
-                {s === 1 ? 'Paquete' : s === 2 ? 'Estilo' : s === 3 ? 'Historia' : 'Resumen'}
-              </span>
+          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-800 -translate-y-1/2 z-0" />
+          {[1, 2, 3, 4].map((i) => (
+            <div 
+              key={i}
+              className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-500 ${
+                step >= i ? 'bg-orange-500 text-black scale-110' : 'bg-gray-900 text-gray-500'
+              }`}
+            >
+              {step > i ? <CheckCircle2 className="w-6 h-6" /> : i}
             </div>
           ))}
-          <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-800 -z-0" />
         </div>
 
-        {/* PASO 1: SELECCIÓN DE PLANES */}
+        {/* PASO 1: SELECCIÓN DE PAQUETE */}
         {step === 1 && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="text-center">
-              <h2 className="text-4xl font-black mb-4">PLANES</h2>
-              <div className="bg-orange-900/30 text-orange-400 py-2 px-6 rounded-full inline-block text-sm border border-orange-500/30 font-bold">
-                ⚡ Promoción por Tiempo Limitado
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {PACKAGES.map((pkg) => (
-                <button
-                  key={pkg.id}
-                  onClick={() => setSelectedPackage(pkg)}
-                  className={`p-8 rounded-3xl border-2 transition-all relative flex flex-col items-center text-center ${
-                    selectedPackage?.id === pkg.id ? 'border-orange-500 bg-orange-500/5' : 'border-gray-800 bg-gray-900/50 hover:border-gray-600'
-                  }`}
-                >
-                  {pkg.tag && (
-                    <span className="absolute -top-3 bg-orange-500 text-black text-[10px] font-black py-1 px-3 rounded-full uppercase">
-                      {pkg.tag}
-                    </span>
-                  )}
-                  <div className={`mb-4 p-4 rounded-full ${selectedPackage?.id === pkg.id ? 'text-orange-500' : 'text-gray-400'}`}>
-                    {pkg.icon}
-                  </div>
-                  <h3 className="text-xl font-bold mb-1">{pkg.name}</h3>
-                  <div className="text-3xl font-black mb-4">${pkg.price.toLocaleString('es-CL')}</div>
-                  <p className="text-sm text-gray-500 leading-relaxed">{pkg.description}</p>
-                </button>
-              ))}
-            </div>
+          <div className="grid md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {PACKAGES.map((pkg) => (
+              <button
+                key={pkg.id}
+                onClick={() => handlePackageSelect(pkg)}
+                className="relative group bg-gray-900/50 border-2 border-gray-800 p-8 rounded-3xl text-left hover:border-orange-500/50 transition-all duration-300"
+              >
+                {pkg.tag && (
+                  <span className="absolute -top-3 right-6 bg-orange-500 text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    {pkg.tag}
+                  </span>
+                )}
+                <div className="mb-6 p-4 bg-orange-500/10 rounded-2xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  {pkg.icon}
+                </div>
+                <h3 className="text-2xl font-bold mb-2">{pkg.name}</h3>
+                <p className="text-gray-400 mb-6">{pkg.description}</p>
+                <div className="text-3xl font-bold text-orange-500">
+                  ${pkg.price.toLocaleString('es-CL')}
+                </div>
+              </button>
+            ))}
           </div>
         )}
 
-        {/* PASO 2: CONFIGURACIÓN DE ESTILO */}
+        {/* PASO 2: ESTILO (GÉNERO Y MOOD) */}
         {step === 2 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center">
-              <h2 className="text-3xl font-black mb-2 uppercase italic">Estilo de Música</h2>
-              {selectedPackage && selectedPackage.songs > 1 && (
-                <p className="text-orange-500 font-bold">Configurando Canción {currentSongIndex + 1} de {selectedPackage.songs}</p>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-sm font-bold uppercase tracking-wider text-gray-400">Género</label>
-                <select 
-                  className="w-full bg-gray-900 border border-gray-700 rounded-2xl p-4 focus:border-orange-500 outline-none transition-all appearance-none cursor-pointer"
-                  value={tempSong.genre}
-                  onChange={(e) => setTempSong({...tempSong, genre: e.target.value})}
-                >
-                  <option value="">Selecciona...</option>
-                  {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold uppercase tracking-wider text-gray-400">Ánimo</label>
-                <select 
-                  className="w-full bg-gray-900 border border-gray-700 rounded-2xl p-4 focus:border-orange-500 outline-none transition-all appearance-none cursor-pointer"
-                  value={tempSong.mood}
-                  onChange={(e) => setTempSong({...tempSong, mood: e.target.value})}
-                >
-                  <option value="">Selecciona...</option>
-                  {MOODS.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-2">
+                {selectedPackage?.songs === 2 ? `Canción ${currentSongIndex + 1}: Estilo` : 'Define el estilo'}
+              </h2>
+              <p className="text-gray-400">Cuéntanos cómo quieres que suene tu música</p>
             </div>
 
-            <div className="space-y-4">
-              <label className="text-sm font-bold uppercase tracking-wider text-gray-400">Voz del Cantante</label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {['Hombre', 'Mujer', 'Dúo Hombre y Mujer'].map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setTempSong({...tempSong, singer: s})}
-                    className={`py-4 rounded-2xl border-2 font-bold transition-all ${
-                      tempSong.singer === s ? 'border-orange-500 bg-orange-500 text-black' : 'border-gray-800 bg-gray-900 hover:border-gray-700'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <label className="text-sm font-bold uppercase tracking-widest text-gray-500">Género Musical</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {GENRES.map((g) => (
+                    <button
+                      key={g.value}
+                      onClick={() => updateCurrentSong({ genre: g.value })}
+                      className={`p-4 rounded-2xl border-2 transition-all ${
+                        currentSong.genre === g.value ? 'border-orange-500 bg-orange-500/10 text-orange-500' : 'border-gray-800 hover:border-gray-700'
+                      }`}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <label className="text-sm font-bold uppercase tracking-wider text-gray-400">Instrumentos Sugeridos</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {INSTRUMENTS.map(inst => (
-                  <button
-                    key={inst}
-                    onClick={() => toggleInstrument(inst)}
-                    className={`py-3 px-4 rounded-xl border transition-all text-sm font-medium ${
-                      tempSong.instruments.includes(inst) 
-                        ? 'border-orange-500 bg-orange-500/10 text-orange-500' 
-                        : 'border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-600'
-                    }`}
-                  >
-                    {inst}
-                  </button>
-                ))}
+              <div className="space-y-4">
+                <label className="text-sm font-bold uppercase tracking-widest text-gray-500">Ánimo / Mood</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {MOODS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => updateCurrentSong({ mood: m.value })}
+                      className={`p-4 rounded-2xl border-2 transition-all ${
+                        currentSong.mood === m.value ? 'border-orange-500 bg-orange-500/10 text-orange-500' : 'border-gray-800 hover:border-gray-700'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -234,66 +211,85 @@ const CreateRequest: React.FC = () => {
 
         {/* PASO 3: HISTORIA */}
         {step === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center">
-              <h2 className="text-3xl font-black mb-2 uppercase italic">Tu Historia</h2>
-              <p className="text-gray-400">Cuéntanos todo lo que quieres que exprese la canción {selectedPackage && selectedPackage.songs > 1 && `${currentSongIndex + 1}`}</p>
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-2">La Historia</h2>
+              <p className="text-gray-400">Danos los detalles para personalizar la letra</p>
             </div>
+
             <textarea
-              className="w-full h-80 bg-gray-900 border border-gray-700 rounded-3xl p-8 focus:border-orange-500 outline-none resize-none text-lg leading-relaxed transition-all"
-              placeholder="Ej: Es para mi esposa por nuestro 10° aniversario. Nos conocimos en la universidad, ella ama las rosas rojas y siempre recordamos nuestro primer viaje a la playa..."
-              value={tempSong.story}
-              onChange={(e) => setTempSong({...tempSong, story: e.target.value})}
+              value={currentSong.story}
+              onChange={(e) => updateCurrentSong({ story: e.target.value })}
+              placeholder="Cuéntanos para quién es, qué quieres decir, anécdotas especiales..."
+              className="w-full h-64 bg-gray-900 border-2 border-gray-800 rounded-3xl p-6 text-lg focus:border-orange-500 outline-none transition-all resize-none"
             />
           </div>
         )}
 
-        {/* PASO 4: RESUMEN FINAL */}
+        {/* PASO 4: RESUMEN Y PAGO */}
         {step === 4 && (
-          <div className="space-y-8 text-center animate-in zoom-in duration-500">
-            <div className="flex justify-center mb-4 text-orange-500">
-              <CheckCircle2 className="w-16 h-16" />
-            </div>
-            <h2 className="text-4xl font-black uppercase italic">¡Resumen de tu Pedido!</h2>
-            <div className="bg-gray-900 p-10 rounded-[2rem] border border-gray-800 max-w-lg mx-auto shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-gray-400 font-bold uppercase tracking-widest text-sm">Paquete Seleccionado</span>
-                <span className="font-black text-xl">{selectedPackage?.name}</span>
-              </div>
-              <div className="space-y-2 mb-8">
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="bg-gray-900/50 border-2 border-gray-800 rounded-3xl p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <CheckCircle2 className="text-orange-500" /> Resumen de tu Pedido
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="flex justify-between items-center pb-4 border-b border-gray-800">
+                  <span className="text-gray-400">Paquete Seleccionado</span>
+                  <span className="font-bold text-xl">{selectedPackage?.name}</span>
+                </div>
+
                 {songsData.map((song, idx) => (
-                  <div key={idx} className="flex justify-between text-sm text-gray-500">
-                    <span>Canción {idx + 1}:</span>
-                    <span>{song.genre} / {song.singer}</span>
+                  <div key={idx} className="bg-black/30 p-4 rounded-2xl border border-gray-800">
+                    <p className="text-orange-500 font-bold mb-2">Canción {idx + 1}</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">Género:</span> {song.genre}</div>
+                      <div><span className="text-gray-500">Ánimo:</span> {song.mood}</div>
+                    </div>
                   </div>
                 ))}
+
+                <div className="pt-4 space-y-2">
+                  <div className="flex justify-between items-center text-gray-400">
+                    <span>Total del servicio</span>
+                    <span>${selectedPackage?.price.toLocaleString('es-CL')}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-2xl font-bold text-orange-500 pt-2 border-t border-gray-800">
+                    <span>Pago Inicial (50%)</span>
+                    <span>${((selectedPackage?.price || 0) / 2).toLocaleString('es-CL')}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 text-right">El 50% restante se paga contra entrega de la canción.</p>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-3xl border-t border-gray-800 pt-8">
-                <span className="font-bold">TOTAL</span>
-                <span className="font-black text-orange-500">${selectedPackage?.price.toLocaleString('es-CL')}</span>
-              </div>
+
+              <button
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className="w-full mt-8 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 text-black font-bold py-4 rounded-2xl text-xl transition-all flex items-center justify-center gap-2"
+              >
+                {isProcessing ? <Loader2 className="animate-spin" /> : <Zap />}
+                {isProcessing ? 'Procesando...' : 'Proceder al Pago Seguro'}
+              </button>
             </div>
-            <button className="bg-orange-500 hover:bg-orange-600 text-black font-black py-5 px-16 rounded-full text-2xl transition-all transform hover:scale-105 shadow-xl shadow-orange-500/20 uppercase italic">
-              Proceder al Pago
-            </button>
           </div>
         )}
 
         {/* BOTONES DE NAVEGACIÓN INFERIOR */}
-        {step < 4 && (
-          <div className="mt-16 flex justify-between items-center">
-            {step > 1 && (
-              <button onClick={handleBack} className="flex items-center gap-2 text-gray-500 hover:text-white font-bold transition-all uppercase text-sm tracking-widest">
-                <ChevronLeft className="w-5 h-5" /> Anterior
-              </button>
-            )}
-            <div className="flex-1" />
+        {step > 1 && step < 4 && (
+          <div className="mt-12 flex justify-between gap-4">
+            <button
+              onClick={handleBack}
+              className="px-8 py-4 rounded-2xl border-2 border-gray-800 font-bold hover:bg-gray-900 transition-all flex items-center gap-2"
+            >
+              <ChevronLeft /> Anterior
+            </button>
             <button
               onClick={handleNext}
-              disabled={(step === 1 && !selectedPackage) || (step === 2 && !tempSong.genre) || (step === 3 && !tempSong.story)}
-              className="bg-orange-500 hover:bg-orange-600 disabled:opacity-30 disabled:cursor-not-allowed text-black font-black py-4 px-10 rounded-full flex items-center gap-2 transition-all transform hover:translate-x-1 uppercase text-sm tracking-widest shadow-lg shadow-orange-500/20"
+              disabled={step === 2 && !currentSong.genre}
+              className="px-12 py-4 rounded-2xl bg-white text-black font-bold hover:bg-orange-500 hover:text-black transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:bg-white"
             >
-              {step === 3 && selectedPackage && currentSongIndex < selectedPackage.songs - 1 ? 'Siguiente Canción' : 'Continuar'} <ChevronRight className="w-5 h-5" />
+              Siguiente <ChevronRight />
             </button>
           </div>
         )}
