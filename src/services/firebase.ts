@@ -23,13 +23,14 @@ import {
 import { User, Order, SongRequest } from '../types';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyDVBVueL9KhuiTBClXES1qyyq_rYaM7fzY",
+  authDomain: "tu-cancion-final.firebaseapp.com",
+  projectId: "tu-cancion-final",
+  storageBucket: "tu-cancion-final.firebasestorage.app",
+  messagingSenderId: "444251950172",
+  appId: "1:444251950172:web:308e850ae2a4b1c0f6ea99",
+  measurementId: "G-KDC5JPLGFR"
+
 };
 
 const app = initializeApp(firebaseConfig);
