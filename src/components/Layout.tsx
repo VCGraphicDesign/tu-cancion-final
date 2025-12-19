@@ -68,10 +68,18 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               <Home size={18} />
               <span>Inicio</span>
             </Link>
+
+            {/* Botón Admin - Acceso Directo */}
+            <Link to="/admin" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-lg border border-primary/20">
+              <LayoutDashboard size={16} /> Admin
+            </Link>
+
             <Link 
               to="/examples" 
               className="text-sm font-bold text-primary hover:text-primaryDark transition-colors cursor-pointer"
             >
+              Ejemplos
+            </Link>
               Ejemplos
             </Link>
             
