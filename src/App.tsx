@@ -10,7 +10,7 @@ import PaymentGateway from './pages/PaymentGateway';
 import Admin from './pages/Admin';
 import Legal from './pages/Legal';
 import { User } from './types';
-import { authService } from './services/mockBackend';
+import { authService } from './services/firebase';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
