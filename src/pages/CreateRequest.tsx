@@ -148,7 +148,7 @@ const CreateRequest: React.FC = () => {
             </div>
 
             <div className="flex justify-center">
-              <button onClick={() => { if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) { setCurrentSongIndex(currentSongIndex + 1); window.scrollTo(0,0); } else { setStep(3); } }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
+              <button onClick={() => { if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) { setCurrentSongIndex(currentSongIndex + 1); document.querySelectorAll('select').forEach(s => s.value = ""); window.scrollTo(0,0); } else { setStep(3); } }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
                 Siguiente <ChevronRight size={18} />
               </button>
             </div>
