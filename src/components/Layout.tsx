@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, LayoutDashboard, Music, Star, Info, Menu, X, LogOut, User } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { Home, LayoutDashboard, Music, Star, Info, Menu, X, LogOut, User } from 'lucide-center';
+import { useAuth } from '../contexts/AuthContext'; // Corregido a plural 'contexts'
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -49,7 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <span>Inicio</span>
             </Link>
 
-            {/* Botón Admin - Siempre Visible */}
+            {/* Botón Admin siempre visible */}
             <Link to="/admin" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-lg border border-primary/20">
               <LayoutDashboard size={16} /> Admin
             </Link>
@@ -99,7 +99,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
 
-      {/* Footer simplificado */}
+      {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-8">
         <div className="container mx-auto px-6 text-center text-gray-500 text-sm">
           © {new Date().getFullYear()} Tu Canción. Todos los derechos reservados.
