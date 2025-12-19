@@ -28,7 +28,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled ? 'bg-white/80 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
@@ -42,22 +41,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <span className="text-xl font-black tracking-tighter text-primary">TU CANCIÓN</span>
           </Link>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" onClick={handleScrollToTop} className="text-sm font-bold text-primary hover:text-primaryDark transition-colors flex items-center gap-2">
               <Home size={18} />
               <span>Inicio</span>
             </Link>
 
-            {/* Botón Admin */}
             <Link to="/admin" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-lg border border-primary/20">
               <LayoutDashboard size={16} /> Admin
             </Link>
 
-            <Link 
-              to="/examples" 
-              className="text-sm font-bold text-primary hover:text-primaryDark transition-colors cursor-pointer"
-            >
+            <Link to="/examples" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors">
               Ejemplos
             </Link>
             
@@ -84,7 +78,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             )}
           </nav>
 
-          {/* Mobile Menu Toggle */}
           <button 
             className="md:hidden p-2 text-primary"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -94,7 +87,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow pt-24">
         {children}
       </main>
