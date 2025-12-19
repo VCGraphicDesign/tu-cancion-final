@@ -1,11 +1,28 @@
 import React, { useState } from 'react';
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
 
-const GÉNEROS_OPCIONES = ["rock", "pop", "balada romántica", "Funk", "reggaetón", "Flamenco", "electrónica", "reggae", "clásica", "folk", "bolero", "blues", "tango"];
-const ÁNIMOS_OPCIONES = ["alegre", "triste", "bailable", "romántico", "melancólico", "inspirador", "relajado"];
-const OCASIONES_OPCIONES = ["aniversario", "despedida", "cumpleaños", "amor", "nacimiento", "matrimonio", "graduación"];
-const INSTRUMENTOS_OPCIONES = ["Guitarra acústica", "Guitarra eléctrica", "Bajo", "Piano", "Violín", "Batería", "Cuerdas", "Saxofón", "Flauta", "Otros"];
-const VOCES_OPCIONES = ["Hombre", "Mujer", "Dúo"];
+// VERIFICACIÓN FINAL: LISTAS COMPLETAS SIN RECORTES
+const GÉNEROS_OPCIONES = [
+  "rock", "pop", "balada romántica", "Funk", "reggaetón", "Flamenco", 
+  "electrónica", "reggae", "clásica", "folk", "bolero", "blues", "tango"
+];
+
+const ÁNIMOS_OPCIONES = [
+  "alegre", "triste", "bailable", "romántico", "melancólico", "inspirador", "relajado"
+];
+
+const OCASIONES_OPCIONES = [
+  "aniversario", "despedida", "cumpleaños", "amor", "nacimiento", "matrimonio", "graduación"
+];
+
+const INSTRUMENTOS_OPCIONES = [
+  "guitarra acústica", "guitarra eléctrica", "bajo", "batería", "piano", "violín", 
+  "saxofón", "flauta", "trompeta", "percusión latina", "cajón Flamenco", "sintetizador", "ukelele"
+];
+
+const VOCES_OPCIONES = [
+  "hombre", "mujer", "Dúo mujer y hombre"
+];
 
 interface Package {
   id: string;
@@ -23,6 +40,7 @@ const CreateRequest: React.FC = () => {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [songsData, setSongsData] = useState<any[]>([]);
 
+  // VERIFICACIÓN: LAS 3 PROMOCIONES COMPLETAS
   const PACKAGES: Package[] = [
     { id: '1', name: '1 Canción', songs: 1, price: 30000, icon: <Music className="w-5 h-5" /> },
     { id: '2', name: '2 Canciones', songs: 2, price: 45000, icon: <div className="flex gap-0.5"><Music className="w-4 h-4"/><Music className="w-4 h-4"/></div>, discount: '-25%' },
@@ -51,7 +69,7 @@ const CreateRequest: React.FC = () => {
     <div className="min-h-screen bg-[#0a0a0a] text-white pt-10 pb-20 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
         
-        {/* PASO 1: PLAN (Basado en captura 1) */}
+        {/* PASO 1: SELECCIÓN DE PROMOCIÓN */}
         {step === 1 && (
           <div className="text-center animate-in fade-in">
             <h1 className="text-3xl font-serif mb-8 italic">Plan</h1>
@@ -72,58 +90,41 @@ const CreateRequest: React.FC = () => {
           </div>
         )}
 
-        {/* PASO 2: ESTILO (Basado en captura 2 - TAMAÑO ADECUADO) */}
+        {/* PASO 2: ESTILO (CON TODA LA INFORMACIÓN Y TAMAÑO ADECUADO) */}
         {step === 2 && (
           <div className="animate-in fade-in max-w-3xl mx-auto">
             <h1 className="text-3xl font-serif text-center mb-10 italic">Estilo</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Género */}
               <div>
                 <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Género</label>
-                <select 
-                  onChange={(e) => updateCurrentSong('genre', e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500"
-                >
+                <select onChange={(e) => updateCurrentSong('genre', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
                   <option value="">Selecciona...</option>
                   {GÉNEROS_OPCIONES.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
 
-              {/* Ánimo */}
               <div>
                 <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Ánimo</label>
-                <select 
-                  onChange={(e) => updateCurrentSong('mood', e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500"
-                >
+                <select onChange={(e) => updateCurrentSong('mood', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
                   <option value="">Selecciona...</option>
                   {ÁNIMOS_OPCIONES.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
               </div>
 
-              {/* Ocasión */}
               <div>
                 <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Ocasión</label>
-                <select 
-                  onChange={(e) => updateCurrentSong('occasion', e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500"
-                >
+                <select onChange={(e) => updateCurrentSong('occasion', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
                   <option value="">Selecciona...</option>
                   {OCASIONES_OPCIONES.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
 
-              {/* Cantante (Horizontal y compacto) */}
               <div>
                 <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Cantante</label>
                 <div className="flex gap-2">
                   {VOCES_OPCIONES.map(v => (
-                    <button 
-                      key={v}
-                      onClick={() => updateCurrentSong('singer', v)}
-                      className={`flex-1 py-3 text-xs rounded-xl border transition-all ${songsData[currentSongIndex].singer === v ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a]'}`}
-                    >
+                    <button key={v} onClick={() => updateCurrentSong('singer', v)} className={`flex-1 py-3 text-[10px] rounded-xl border transition-all ${songsData[currentSongIndex].singer === v ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a]'}`}>
                       {v}
                     </button>
                   ))}
@@ -131,15 +132,14 @@ const CreateRequest: React.FC = () => {
               </div>
             </div>
 
-            {/* Instrumentos (Grilla de 5 columnas compacta) */}
             <div className="mb-10">
               <label className="text-xs text-gray-500 mb-3 block uppercase tracking-wider">Instrumentos</label>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {INSTRUMENTOS_OPCIONES.map(inst => (
                   <button 
                     key={inst}
                     onClick={() => toggleInstrument(inst)}
-                    className={`py-4 text-[11px] rounded-xl border transition-all ${songsData[currentSongIndex].instruments.includes(inst) ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a] text-gray-400'}`}
+                    className={`py-3 text-[10px] rounded-lg border transition-all ${songsData[currentSongIndex].instruments.includes(inst) ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a] text-gray-400'}`}
                   >
                     {inst}
                   </button>
@@ -148,24 +148,16 @@ const CreateRequest: React.FC = () => {
             </div>
 
             <div className="flex justify-center">
-              <button 
-                onClick={() => {
-                   if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) {
-                      setCurrentSongIndex(currentSongIndex + 1);
-                      window.scrollTo(0,0);
-                   } else { setStep(3); }
-                }}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all"
-              >
+              <button onClick={() => { if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) { setCurrentSongIndex(currentSongIndex + 1); window.scrollTo(0,0); } else { setStep(3); } }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
                 Siguiente <ChevronRight size={18} />
               </button>
             </div>
           </div>
         )}
 
-        {/* PASO 3: PAGO 50% */}
+        {/* PASO 3: PAGO DEL 50% (VERIFICADO) */}
         {step === 3 && (
-          <div className="max-w-md mx-auto bg-[#1a1a1a] border border-gray-800 rounded-3xl p-8 text-center animate-in zoom-in duration-300">
+          <div className="max-w-md mx-auto bg-[#1a1a1a] border border-gray-800 rounded-3xl p-8 text-center animate-in zoom-in">
             <h2 className="text-xl font-bold mb-6">Resumen y Reserva</h2>
             <div className="flex justify-between items-center text-xl font-bold text-emerald-500 py-6 border-y border-gray-800 mb-6">
               <span className="text-xs text-gray-400 uppercase">Reserva (50%):</span>
