@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
 
-// VERIFICACIÓN FINAL: LISTAS COMPLETAS SIN RECORTES
+// LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
   "rock", "pop", "balada romántica", "Funk", "reggaetón", "Flamenco", 
   "electrónica", "reggae", "clásica", "folk", "bolero", "blues", "tango"
@@ -36,11 +36,11 @@ interface Package {
 
 const CreateRequest: React.FC = () => {
   const [step, setStep] = useState(1);
+  const [subStep, setSubStep] = useState(1); // 1: Campos, 2: Historia
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [songsData, setSongsData] = useState<any[]>([]);
 
-  // VERIFICACIÓN: LAS 3 PROMOCIONES COMPLETAS
   const PACKAGES: Package[] = [
     { id: '1', name: '1 Canción', songs: 1, price: 30000, icon: <Music className="w-5 h-5" /> },
     { id: '2', name: '2 Canciones', songs: 2, price: 45000, icon: <div className="flex gap-0.5"><Music className="w-4 h-4"/><Music className="w-4 h-4"/></div>, discount: '-25%' },
@@ -49,8 +49,10 @@ const CreateRequest: React.FC = () => {
 
   const handlePackageSelect = (pkg: Package) => {
     setSelectedPackage(pkg);
-    setSongsData(Array(pkg.songs).fill({ genre: '', mood: '', occasion: '', instruments: [], singer: '' }));
+    setSongsData(Array(pkg.songs).fill({ genre: '', mood: '', occasion: '', instruments: [], singer: '', story: '' }));
     setStep(2);
+    setSubStep(1);
+    setCurrentSongIndex(0);
   };
 
   const updateCurrentSong = (field: string, value: any) => {
@@ -90,72 +92,116 @@ const CreateRequest: React.FC = () => {
           </div>
         )}
 
-        {/* PASO 2: ESTILO (CON TODA LA INFORMACIÓN Y TAMAÑO ADECUADO) */}
+        {/* PASO 2: FORMULARIO DINÁMICO (ESTILO E HISTORIA) */}
         {step === 2 && (
           <div className="animate-in fade-in max-w-3xl mx-auto">
-            <h1 className="text-3xl font-serif text-center mb-10 italic">Estilo</h1>
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-serif italic mb-2">Canción {currentSongIndex + 1} de {selectedPackage?.songs}</h1>
+              <p className="text-emerald-500 text-xs font-bold uppercase tracking-widest">
+                {subStep === 1 ? "Parte 1: Define el Estilo" : "Parte 2: Cuéntanos la Historia"}
+              </p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Género</label>
-                <select onChange={(e) => updateCurrentSong('genre', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
-                  <option value="">Selecciona...</option>
-                  {GÉNEROS_OPCIONES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
+            {/* SUB-PASO 1: CAMPOS OBLIGATORIOS */}
+            {subStep === 1 && (
+              <div className="animate-in slide-in-from-left duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Género</label>
+                    <select value={songsData[currentSongIndex].genre} onChange={(e) => updateCurrentSong('genre', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
+                      <option value="">Selecciona...</option>
+                      {GÉNEROS_OPCIONES.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
 
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Ánimo</label>
-                <select onChange={(e) => updateCurrentSong('mood', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
-                  <option value="">Selecciona...</option>
-                  {ÁNIMOS_OPCIONES.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Ánimo</label>
+                    <select value={songsData[currentSongIndex].mood} onChange={(e) => updateCurrentSong('mood', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
+                      <option value="">Selecciona...</option>
+                      {ÁNIMOS_OPCIONES.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
 
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Ocasión</label>
-                <select onChange={(e) => updateCurrentSong('occasion', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
-                  <option value="">Selecciona...</option>
-                  {OCASIONES_OPCIONES.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Ocasión</label>
+                    <select value={songsData[currentSongIndex].occasion} onChange={(e) => updateCurrentSong('occasion', e.target.value)} className="w-full bg-[#1a1a1a] border border-gray-800 p-3 rounded-xl text-sm outline-none focus:border-emerald-500">
+                      <option value="">Selecciona...</option>
+                      {OCASIONES_OPCIONES.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
 
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Cantante</label>
-                <div className="flex gap-2">
-                  {VOCES_OPCIONES.map(v => (
-                    <button key={v} onClick={() => updateCurrentSong('singer', v)} className={`flex-1 py-3 text-[10px] rounded-xl border transition-all ${songsData[currentSongIndex].singer === v ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a]'}`}>
-                      {v}
-                    </button>
-                  ))}
+                  <div>
+                    <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Cantante</label>
+                    <div className="flex gap-2">
+                      {VOCES_OPCIONES.map(v => (
+                        <button key={v} onClick={() => updateCurrentSong('singer', v)} className={`flex-1 py-3 text-[10px] rounded-xl border transition-all ${songsData[currentSongIndex].singer === v ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a]'}`}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-10">
+                  <label className="text-xs text-gray-500 mb-3 block uppercase tracking-wider">Instrumentos</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {INSTRUMENTOS_OPCIONES.map(inst => (
+                      <button key={inst} onClick={() => toggleInstrument(inst)} className={`py-3 text-[10px] rounded-lg border transition-all ${songsData[currentSongIndex].instruments.includes(inst) ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a] text-gray-400'}`}>
+                        {inst}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center border-t border-gray-800 pt-8">
+                  <button onClick={() => { if(currentSongIndex > 0) { setCurrentSongIndex(currentSongIndex - 1); setSubStep(2); } else { setStep(1); } }} className="text-gray-500 hover:text-white flex items-center gap-2 transition-all">
+                    <ChevronRight size={18} className="rotate-180" /> Atrás
+                  </button>
+                  <button onClick={() => setSubStep(2)} className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
+                    Siguiente: Historia <ChevronRight size={18} />
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="mb-10">
-              <label className="text-xs text-gray-500 mb-3 block uppercase tracking-wider">Instrumentos</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {INSTRUMENTOS_OPCIONES.map(inst => (
-                  <button 
-                    key={inst}
-                    onClick={() => toggleInstrument(inst)}
-                    className={`py-3 text-[10px] rounded-lg border transition-all ${songsData[currentSongIndex].instruments.includes(inst) ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800 bg-[#1a1a1a] text-gray-400'}`}
-                  >
-                    {inst}
+            {/* SUB-PASO 2: CUADRO DE TEXTO (HISTORIA) */}
+            {subStep === 2 && (
+              <div className="animate-in slide-in-from-right duration-300">
+                <div className="mb-10">
+                  <label className="text-xs text-gray-500 mb-3 block uppercase tracking-wider">Cuéntanos la historia de esta canción</label>
+                  <textarea 
+                    value={songsData[currentSongIndex].story}
+                    onChange={(e) => updateCurrentSong('story', e.target.value)}
+                    placeholder="Describe detalles, nombres, anécdotas..."
+                    className="w-full bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 text-white h-64 focus:border-emerald-500 outline-none transition-all resize-none"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center border-t border-gray-800 pt-8">
+                  <button onClick={() => setSubStep(1)} className="text-gray-500 hover:text-white flex items-center gap-2 transition-all">
+                    <ChevronRight size={18} className="rotate-180" /> Atrás: Estilo
                   </button>
-                ))}
+                  <button 
+                    onClick={() => { 
+                      if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) { 
+                        setCurrentSongIndex(currentSongIndex + 1); 
+                        setSubStep(1);
+                        window.scrollTo(0,0); 
+                      } else { 
+                        setStep(3); 
+                      } 
+                    }} 
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all"
+                  >
+                    {selectedPackage && currentSongIndex < selectedPackage.songs - 1 ? "Siguiente Canción" : "Ir al Pago"} <ChevronRight size={18} />
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div className="flex justify-center">
-              <button onClick={() => { if (selectedPackage && currentSongIndex < selectedPackage.songs - 1) { setCurrentSongIndex(currentSongIndex + 1); document.querySelectorAll('select').forEach(s => s.value = ""); window.scrollTo(0,0); } else { setStep(3); } }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
-                Siguiente <ChevronRight size={18} />
-              </button>
-            </div>
+            )}
           </div>
         )}
 
-        {/* PASO 3: PAGO DEL 50% (VERIFICADO) */}
+        {/* PASO 3: PAGO DEL 50% */}
         {step === 3 && (
           <div className="max-w-md mx-auto bg-[#1a1a1a] border border-gray-800 rounded-3xl p-8 text-center animate-in zoom-in">
             <h2 className="text-xl font-bold mb-6">Resumen y Reserva</h2>
@@ -165,6 +211,9 @@ const CreateRequest: React.FC = () => {
             </div>
             <button className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all">
               Ir al Pago
+            </button>
+            <button onClick={() => { setStep(2); setSubStep(2); setCurrentSongIndex((selectedPackage?.songs || 1) - 1); }} className="mt-4 text-gray-500 text-sm hover:text-white transition-all">
+              Volver a revisar datos
             </button>
           </div>
         )}
