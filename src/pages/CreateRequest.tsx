@@ -209,7 +209,7 @@ const CreateRequest: React.FC = () => {
               <span className="text-xs text-gray-400 uppercase">Reserva (50%):</span>
               <span>${((selectedPackage?.price || 0) / 2).toLocaleString('es-CL')}</span>
             </div>
-            <button className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all">
+            <button onClick={() => window.location.hash = '#/checkout'} className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all">
               Ir al Pago
             </button>
             <button onClick={() => { setStep(2); setSubStep(2); setCurrentSongIndex((selectedPackage?.songs || 1) - 1); }} className="mt-4 text-gray-500 text-sm hover:text-white transition-all">
