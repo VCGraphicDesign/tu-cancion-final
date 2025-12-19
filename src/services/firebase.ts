@@ -1,12 +1,4 @@
 // IMPORTANTE: Este archivo contiene la lógica REAL para conectar con Firebase.
-// Está COMENTADO para que la app compile y funcione en modo "Demo" (GitHub) sin dependencias externas.
-// Para pasar a producción:
-// 1. npm install firebase
-// 2. Descomenta el código.
-// 3. Agrega tus credenciales en firebaseConfig.
-
-/* ================= DESCOMENTAR PARA PRODUCCIÓN =================
-
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
@@ -54,7 +46,7 @@ export const authService = {
     await signInWithPopup(auth, googleProvider);
   },
   loginWithEmail: async (email: string, password: string): Promise<User> => {
-     throw new Error("Implementar login real");
+      throw new Error("Implementar login real");
   },
   logout: async () => {
     await signOut(auth);
@@ -108,8 +100,20 @@ export const orderService = {
     const updated = await getDoc(orderRef);
     return { id: updated.id, ...updated.data() } as Order;
   },
-  getAll: async (): Promise<Order[]> => { return []; },
-  updateStatus: async (id: string, status: any, url?: string) => { return {} as Order; }
+  getAll: async (): Promise<Order[]> => {
+    const querySnapshot = await getDocs(collection(db, "orders"));
+    const orders: Order[] = [];
+    querySnapshot.forEach((doc) => orders.push({ id: doc.id, ...doc.data() } as Order));
+    return orders;
+  },
+  updateStatus: async (id: string, status: any, url?: string) => {
+    const orderRef = doc(db, "orders", id);
+    const updateData: any = { status };
+    if (url) updateData.finalUrl = url;
+    await updateDoc(orderRef, updateData);
+    const updated = await getDoc(orderRef);
+    return { id: updated.id, ...updated.data() } as Order;
+  }
 };
 
 const mapUser = (fbUser: FirebaseUser): User => {
@@ -124,7 +128,4 @@ export const calculateEstimatedPrice = (genre: string, instruments: string[], pk
   return 30000;
 };
 
-================= FIN BLOQUE COMENTADO ================= */
-
-// Export ficticio para que TypeScript no marque error de módulo vacío
-export const firebaseInfo = "Plantilla de Firebase (Desactivada para GitHub)";
+export const firebaseInfo = "Conexión Real de Firebase Activa";
