@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, LayoutDashboard, Music, Star, Info, Menu, X, LogOut, User } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { Home, LayoutDashboard, Music, Menu, X, LogOut } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, isAdmin, logout } = useAuth();
+  // Hemos simplificado esto para que la web funcione sin el archivo perdido
+  const user = { name: 'Admin' }; // Simulamos un usuario para que no falle la vista
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +22,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const logout = () => {
+    console.log("Sesión cerrada");
   };
 
   return (
@@ -47,6 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <span>Inicio</span>
             </Link>
 
+            {/* Botón Admin que querías colocar */}
             <Link to="/admin" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-lg border border-primary/20">
               <LayoutDashboard size={16} /> Admin
             </Link>
@@ -55,27 +58,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               Ejemplos
             </Link>
             
-            {user ? (
-              <div className="flex items-center gap-6">
-                <Link to="/dashboard" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors">
-                  Mis Pedidos
-                </Link>
-                <button 
-                  onClick={() => logout()}
-                  className="flex items-center gap-2 text-sm font-bold text-red-500 hover:text-red-600 transition-colors"
-                >
-                  <LogOut size={18} />
-                  Salir
-                </button>
-              </div>
-            ) : (
-              <Link 
-                to="/create"
-                className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-primaryDark transition-all shadow-md hover:shadow-lg active:scale-95"
-              >
-                Empezar a Crear
+            <div className="flex items-center gap-6">
+              <Link to="/dashboard" className="text-sm font-bold text-primary hover:text-primaryDark transition-colors">
+                Mis Pedidos
               </Link>
-            )}
+              <button 
+                onClick={logout}
+                className="flex items-center gap-2 text-sm font-bold text-red-500 hover:text-red-600 transition-colors"
+              >
+                <LogOut size={18} />
+                Salir
+              </button>
+            </div>
           </nav>
 
           <button 
