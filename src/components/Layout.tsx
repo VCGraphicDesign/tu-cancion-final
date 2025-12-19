@@ -9,67 +9,62 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // URL corregida para que Google Drive permita ver la imagen directamente en la web
+  // URL de tu logo en Drive (Ruta directa para visualización)
   const logoUrl = "https://lh3.googleusercontent.com/d/1nRRw1GCFuj6XKd1O3pogS1G7q8HH7Ebw";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* HEADER: Fondo blanco sólido, sin transparencias, letras visibles */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 py-4">
+      {/* HEADER: Fondo blanco sólido garantizado, sin transparencias */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 py-3 shadow-sm">
         <div className="container mx-auto px-6 flex items-center justify-between">
           
-          {/* LOGO ORIGINAL DESDE TU ENLACE */}
+          {/* LOGO: Tamaño recuperado para que sea legible y protagonista */}
           <Link to="/" className="flex items-center">
             <img 
               src={logoUrl} 
               alt="Tu Canción Logo" 
-              className="h-16 w-auto object-contain"
-              onError={(e) => {
-                // Si el enlace de Drive falla, esto evita que el diseño se rompa
-                console.error("Error cargando el logo desde Drive");
-              }}
+              className="h-24 w-auto object-contain"
+              style={{ minWidth: '180px' }}
             />
           </Link>
 
-          {/* MENÚ: Colores verde oscuro (#1e5d4d) para máximo contraste sobre blanco */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm font-bold text-[#1e5d4d] flex items-center gap-2 hover:opacity-80">
-              <Home size={18} />
+          {/* NAVEGACIÓN: Todos los elementos presentes con color verde oscuro (#1e5d4d) */}
+          <nav className="hidden md:flex items-center gap-10">
+            <Link to="/" className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2">
+              <Home size={20} />
               Inicio
             </Link>
 
-            {/* BOTÓN ADMIN SOLICITADO */}
-            <Link to="/admin" className="text-sm font-bold text-[#1e5d4d] flex items-center gap-2 hover:opacity-80">
-              <LayoutDashboard size={18} />
+            <Link to="/admin" className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2">
+              <LayoutDashboard size={20} />
               Admin
             </Link>
 
-            <Link to="/examples" className="text-sm font-bold text-[#1e5d4d] hover:opacity-80">
+            <Link to="/examples" className="text-[15px] font-bold text-[#1e5d4d]">
               Ejemplos
             </Link>
             
-            {/* BOTÓN PRINCIPAL */}
             <Link 
               to="/create"
-              className="bg-[#007f6e] text-white px-8 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-[#006658] transition-all"
+              className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all"
             >
               Empezar a Crear
             </Link>
           </nav>
 
-          {/* Menú móvil */}
+          {/* Menú móvil (Iconos aumentados para visibilidad) */}
           <button className="md:hidden text-[#1e5d4d]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
           </button>
         </div>
       </header>
 
-      {/* Relleno superior para que el contenido no quede oculto bajo el header blanco */}
-      <main className="flex-grow pt-28">
+      {/* Ajuste de espacio para que el header blanco no tape tu contenido */}
+      <main className="flex-grow pt-32">
         {children}
       </main>
 
-      <footer className="bg-white border-t border-gray-100 py-8 text-center text-gray-400 text-sm">
+      <footer className="bg-white border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
         © {new Date().getFullYear()} Tu Canción. Todos los derechos reservados.
       </footer>
     </div>
