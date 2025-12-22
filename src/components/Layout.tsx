@@ -65,40 +65,41 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
         {children}
       </main>
 
-      <footer className="bg-[#1a1a1a] text-gray-400 py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-left">
-            
-            {/* Columna 1: Tu Canción */}
+      <footer className="bg-[#121212] text-gray-400 py-12 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
+            {/* Columna 1 */}
             <div>
-              <h4 className="text-white font-bold mb-6">Tu Canción</h4>
-              <p className="text-sm leading-relaxed max-w-xs">
+              <div className="flex items-center gap-2 text-white font-bold mb-4">
+                <Music size={20} />
+                <span>Tu Canción</span>
+              </div>
+              <p className="text-sm leading-relaxed">
                 No dejes que se borre lo que sientes. Haz que viva siempre en una canción. Tu historia en canción.
               </p>
             </div>
 
-            {/* Columna 2: Enlaces */}
+            {/* Columna 2 */}
             <div>
-              <h4 className="text-white font-bold mb-6">Enlaces</h4>
-              <ul className="space-y-4 text-sm">
+              <h4 className="text-white font-bold mb-4">Enlaces</h4>
+              <ul className="space-y-2 text-sm">
                 <li><Link to="/" className="hover:text-white transition-colors">Inicio</Link></li>
-                <li><Link to="/examples" className="hover:text-white transition-colors">Ejemplos</Link></li>
-                <li><Link to="/create" className="hover:text-white transition-colors">Crear Canción</Link></li>
+                <li><Link to="/ejemplos" className="hover:text-white transition-colors">Ejemplos</Link></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition-colors">Crear Canción</button></li>
               </ul>
             </div>
 
-            {/* Columna 3: Legal */}
+            {/* Columna 3 */}
             <div>
-              <h4 className="text-white font-bold mb-6">Legal</h4>
-              <ul className="space-y-4 text-sm">
+              <h4 className="text-white font-bold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
                 <li><Link to="/legal#terminos" className="hover:text-white transition-colors">Términos</Link></li>
                 <li><Link to="/legal#privacidad" className="hover:text-white transition-colors">Privacidad</Link></li>
-                <li><Link to="/legal#reembolso" className="hover:text-white transition-colors">Reembolsos</Link></li>
+                <li><Link to="/legal#reembolsos" className="hover:text-white transition-colors">Reembolsos</Link></li>
               </ul>
             </div>
           </div>
-
-          <div className="border-t border-white/5 pt-8 text-center text-xs">
+          <div className="mt-12 pt-8 border-t border-white/5 text-center text-xs">
             © {new Date().getFullYear()} Tu Canción. Todos los derechos reservados.
           </div>
         </div>
