@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, LayoutDashboard, Menu, X } from 'lucide-react';
+import { Home, LayoutDashboard, Menu, X, Music } from 'lucide-react';
 
 interface LayoutProps {
-  user: any; onLogout: () => void;
+  user: any; 
+  onLogout: () => void;
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // URL de tu logo en Drive (Ruta directa para visualización)
+  // URL de tu logo
   const logoUrl = "https://lh3.googleusercontent.com/d/1nRRw1GCFuj6XKd1O3pogS1G7q8HH7Ebw";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* HEADER: Fondo blanco sólido garantizado, sin transparencias */}
+      {/* HEADER: Botón Admin intacto entre Inicio y Ejemplos */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 py-3 shadow-sm">
         <div className="container mx-auto px-6 flex items-center justify-between">
           
-          {/* LOGO: Tamaño recuperado para que sea legible y protagonista */}
+          {/* LOGO: Mantiene dimensiones h-24 y min-width 180px */}
           <Link to="/" className="flex items-center">
             <img 
               src={logoUrl} 
@@ -29,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             />
           </Link>
 
-          {/* NAVEGACIÓN: Todos los elementos presentes con color verde oscuro (#1e5d4d) */}
+          {/* NAVEGACIÓN: Sin cambios, Admin presente */}
           <nav className="hidden md:flex items-center gap-10">
             <Link to="/" className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2">
               <Home size={20} />
@@ -53,22 +54,22 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             </Link>
           </nav>
 
-          {/* Menú móvil (Iconos aumentados para visibilidad) */}
+          {/* Menú móvil */}
           <button className="md:hidden text-[#1e5d4d]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
           </button>
         </div>
       </header>
 
-      {/* Ajuste de espacio para que el header blanco no tape tu contenido */}
-      <main className="flex-grow pt-32">
+      {/* CUERPO: Mantiene el fondo original bg-background */}
+      <main className="flex-grow pt-32 bg-background">
         {children}
       </main>
 
+      {/* FOOTER: Diseño de AI Studio con Music importado correctamente */}
       <footer className="bg-[#121212] text-gray-400 py-12 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
-            {/* Columna 1 */}
             <div>
               <div className="flex items-center gap-2 text-white font-bold mb-4">
                 <Music size={20} />
@@ -79,17 +80,15 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               </p>
             </div>
 
-            {/* Columna 2 */}
             <div>
               <h4 className="text-white font-bold mb-4">Enlaces</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/" className="hover:text-white transition-colors">Inicio</Link></li>
-                <li><Link to="/ejemplos" className="hover:text-white transition-colors">Ejemplos</Link></li>
+                <li><Link to="/examples" className="hover:text-white transition-colors">Ejemplos</Link></li>
                 <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition-colors">Crear Canción</button></li>
               </ul>
             </div>
 
-            {/* Columna 3 */}
             <div>
               <h4 className="text-white font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
