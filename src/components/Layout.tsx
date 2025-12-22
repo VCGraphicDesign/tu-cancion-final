@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { Home, LayoutDashboard, Menu, X } from 'lucide-react';
 
 interface LayoutProps {
+  user: any; onLogout: () => void;
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // URL de tu logo en Drive (Ruta directa para visualización)
@@ -64,8 +65,43 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
 
-      <footer className="bg-white border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
-        © {new Date().getFullYear()} Tu Canción. Todos los derechos reservados.
+      <footer className="bg-[#1a1a1a] text-gray-400 py-16">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-left">
+            
+            {/* Columna 1: Tu Canción */}
+            <div>
+              <h4 className="text-white font-bold mb-6">Tu Canción</h4>
+              <p className="text-sm leading-relaxed max-w-xs">
+                No dejes que se borre lo que sientes. Haz que viva siempre en una canción. Tu historia en canción.
+              </p>
+            </div>
+
+            {/* Columna 2: Enlaces */}
+            <div>
+              <h4 className="text-white font-bold mb-6">Enlaces</h4>
+              <ul className="space-y-4 text-sm">
+                <li><Link to="/" className="hover:text-white transition-colors">Inicio</Link></li>
+                <li><Link to="/examples" className="hover:text-white transition-colors">Ejemplos</Link></li>
+                <li><Link to="/create" className="hover:text-white transition-colors">Crear Canción</Link></li>
+              </ul>
+            </div>
+
+            {/* Columna 3: Legal */}
+            <div>
+              <h4 className="text-white font-bold mb-6">Legal</h4>
+              <ul className="space-y-4 text-sm">
+                <li><Link to="/legal#terminos" className="hover:text-white transition-colors">Términos</Link></li>
+                <li><Link to="/legal#privacidad" className="hover:text-white transition-colors">Privacidad</Link></li>
+                <li><Link to="/legal#reembolso" className="hover:text-white transition-colors">Reembolsos</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-white/5 pt-8 text-center text-xs">
+            © {new Date().getFullYear()} Tu Canción. Todos los derechos reservados.
+          </div>
+        </div>
       </footer>
     </div>
   );
