@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // NUEVO: Se añade useEffect
+import { useNavigate } from 'react-router-dom'; // NUEVO: Se añade useNavigate
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
+import { orderService, authService } from '../firebase'; // NUEVO: Se importa el servicio
 
 // LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
@@ -40,6 +42,14 @@ const CreateRequest: React.FC = () => {
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [songsData, setSongsData] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null); // NUEVO: Estado para guardar el usuario logueado
+  const navigate = useNavigate(); // NUEVO: Hook para navegar entre páginas
+
+  // NUEVO: Efecto para obtener el usuario logueado al cargar la página
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChanged(setUser);
+    return () => unsubscribe();
+  }, []);
 
   const PACKAGES: Package[] = [
     { id: '1', name: '1 Canción', songs: 1, price: 30000, icon: <Music className="w-5 h-5" /> },
@@ -65,6 +75,28 @@ const CreateRequest: React.FC = () => {
     const currentInsts = songsData[currentSongIndex]?.instruments || [];
     const newInsts = currentInsts.includes(inst) ? currentInsts.filter((i: any) => i !== inst) : [...currentInsts, inst];
     updateCurrentSong('instruments', newInsts);
+  };
+
+  // NUEVO: Función que se ejecuta al hacer clic en "Ir al Pago"
+  const handleGoToPayment = async () => {
+    if (!user) {
+      alert("Debes estar logueado para continuar.");
+      return;
+    }
+    try {
+      // 1. Guarda el pedido en Firestore
+      const newOrder = await orderService.create(user.uid, { 
+        songs: songsData, 
+        packageInfo: selectedPackage 
+      });
+
+      // 2. Navega a la página de pago, pasando el ID del nuevo pedido
+      navigate('/checkout', { state: { orderId: newOrder.id } });
+
+    } catch (error) {
+      console.error("Error al crear el pedido:", error);
+      alert("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
+    }
   };
 
   return (
@@ -209,7 +241,7 @@ const CreateRequest: React.FC = () => {
               <span className="text-xs text-gray-400 uppercase">Reserva (50%):</span>
               <span>${((selectedPackage?.price || 0) / 2).toLocaleString('es-CL')}</span>
             </div>
-            <button onClick={() => window.location.hash = '#/checkout'} className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all">
+            <button onClick={handleGoToPayment} className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all">
               Ir al Pago
             </button>
             <button onClick={() => { setStep(2); setSubStep(2); setCurrentSongIndex((selectedPackage?.songs || 1) - 1); }} className="mt-4 text-gray-500 text-sm hover:text-white transition-all">
