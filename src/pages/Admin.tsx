@@ -16,7 +16,11 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || user.email !== 'g.d.chile@gmail.com') {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    if (user.email !== 'g.d.chile@gmail.com') {
       navigate('/');
       return;
     }
