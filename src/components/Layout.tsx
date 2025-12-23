@@ -80,12 +80,19 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               </p>
             </div>
 
-            <div>
+           <div>
               <h4 className="text-white font-bold mb-4">Enlaces</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/" className="hover:text-white transition-colors">Inicio</Link></li>
                 <li><Link to="/examples" className="hover:text-white transition-colors">Ejemplos</Link></li>
-                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition-colors">Crear Canción</button></li>
+                <li>
+                  <Link 
+                    to={user ? "/create" : "/auth"} 
+                    className="hover:text-white transition-colors"
+                  >
+                    Empezar a Crear
+                  </Link>
+                </li>
               </ul>
             </div>
 
