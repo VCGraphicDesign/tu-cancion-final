@@ -79,7 +79,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
         case 'in_progress': return <span className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs font-bold border border-purple-500/20">En Progreso</span>;
         case 'preview_ready': return <span className="bg-accent/20 text-accent px-2 py-1 rounded text-xs font-bold border border-accent/20">Avance Listo</span>;
         case 'completed': return <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold border border-green-500/20">Completado</span>;
-        default: return null;;
+        default: return null;
     }
   };
 
