@@ -16,7 +16,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.email !== 'g.d.chile@gmail.com') {
       navigate('/');
       return;
     }
@@ -83,7 +83,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     }
   };
 
-  if (!user) return null;
+  if (!user || user.email !== 'g.d.chile@gmail.com') return null;
 
   return (
     <div className="min-h-screen bg-bgDark py-12 px-4 pb-32">
