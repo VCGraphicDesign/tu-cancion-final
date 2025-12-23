@@ -47,7 +47,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             </Link>
             
             <Link 
-              to="/create"
+              to={user ? "/create" : "/auth"}
               className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all"
             >
               Empezar a Crear
