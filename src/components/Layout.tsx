@@ -37,17 +37,20 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               Inicio
             </Link>
 
-            <Link to="/admin" className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2">
+            <Link 
+              to={user && user.email === 'g.d.chile@gmail.com' ? "/admin" : "/auth"} 
+              className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2"
+>
               <LayoutDashboard size={20} />
               Admin
-            </Link>
+              </Link>
 
             <Link to="/examples" className="text-[15px] font-bold text-[#1e5d4d]">
               Ejemplos
             </Link>
             
             <Link 
-              to={user ? "/create" : "/auth"}
+              to={(user && user.uid) ? "/create" : "/auth"}
               className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all"
             >
               Empezar a Crear
@@ -87,7 +90,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                 <li><Link to="/examples" className="hover:text-white transition-colors">Ejemplos</Link></li>
                 <li>
                   <Link 
-                    to={user ? "/create" : "/auth"} 
+                     to={(user && user.uid) ? "/create" : "/auth"}
                     className="hover:text-white transition-colors"
                   >
                     Empezar a Crear
