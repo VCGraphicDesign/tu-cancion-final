@@ -47,9 +47,16 @@ const CreateRequest: React.FC = () => {
 
   // NUEVO: Efecto para obtener el usuario logueado al cargar la página
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(setUser);
-    return () => unsubscribe();
-  }, []);
+  const unsubscribe = authService.onAuthStateChanged((u) => {
+    if (!u) {
+      navigate('/auth', { replace: true });
+    } else {
+      setUser(u);
+    }
+  });
+  return () => unsubscribe();
+}, [navigate]);
+
 
   const PACKAGES: Package[] = [
     { id: '1', name: '1 Canción', songs: 1, price: 30000, icon: <Music className="w-5 h-5" /> },
