@@ -10,7 +10,7 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ user }) => {
   // If user is logged in, CTAs go to Create. If not, they go to Auth.
-  const ctaLink = user ? "/create" : "/auth";
+  const ctaLink = (user && user.uid) ? "/create" : "/auth";
 
   return (
     <div className="flex flex-col">
