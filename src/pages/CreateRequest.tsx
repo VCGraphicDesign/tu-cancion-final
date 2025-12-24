@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'; // NUEVO: Se añade useEffect
 import { useNavigate } from 'react-router-dom'; // NUEVO: Se añade useNavigate
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
-import { orderService, authService } from '../firebase'; // NUEVO: Se importa el servicio
+import { orderService, authService } from '../services/firebase'; // NUEVO: Se importa el servicio
 
 // LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
