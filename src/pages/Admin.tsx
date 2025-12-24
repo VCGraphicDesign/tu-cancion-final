@@ -16,15 +16,19 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
+    // Solo actuamos cuando el sistema confirma quién es el usuario
+    if (user) {
+      if (user.email === 'g.d.chile@gmail.com') {
+        // Si el correo coincide, cargamos tus datos del panel
+        loadData();
+      } else {
+        // Si es cualquier otro correo, lo expulsamos al inicio
+        navigate('/');
+      }
     }
-    if (user.email !== 'g.d.chile@gmail.com') {
-      navigate('/');
-      return;
-    }
-    loadData();
+    // Si no hay 'user' todavía, el sistema no hace nada y te permite 
+    // permanecer en la ruta para que los otros componentes (como el Layout) 
+    // te redirijan a /auth si es necesario.
   }, [user, navigate]);
 
   const loadData = async () => {
