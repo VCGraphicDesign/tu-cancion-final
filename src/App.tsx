@@ -43,7 +43,7 @@ const App: React.FC = () => {
           <Route path="/examples" element={<Examples />} />
           <Route path="/legal" element={<Legal />} />
           <Route path="/auth" element={user ? <Navigate to="/dashboard" /> : <Auth onLogin={handleLogin} />} />
-          <Route path="/create" element={<CreateRequest user={user} />} />
+          <Route path="/create" element={user ? <CreateRequest user={user} /> : <Navigate to="/auth" />} />
           <Route path="/checkout" element={<PaymentGateway user={user} />} />
           <Route path="/pay/:orderId" element={<PaymentGateway user={user} />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
