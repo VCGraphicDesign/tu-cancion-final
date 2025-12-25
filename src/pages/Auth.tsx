@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, AlertCircle, X, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
-import { authService } from '../services/mockBackend';
+import { authService } from '../services/firebase';
 import { User } from '../types';
 
 interface AuthProps {
