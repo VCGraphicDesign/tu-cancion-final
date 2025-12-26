@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, AlertCircle, X, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
-import { authService } from '../services/mockBackend';
+import { authService } from '../services/firebase';
 import { User } from '../types';
 
 interface AuthProps {
@@ -34,18 +34,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setIsLoading(true);
     setError('');
     try {
-        await authService.loginWithRedirect(providerId);
-        // En mock, loginWithRedirect es inmediato, forzamos la actualización
-        const u = authService.getCurrentUser();
-        if (u) {
-            onLogin(u);
-            navigate('/create');
-        }
+        const user = await authService.loginGoogle();
+        onLogin(user);
+        navigate('/create');
     } catch(err) {
         setError('Error al iniciar sesión.');
         setIsLoading(false);
     }
-  };
+};
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
