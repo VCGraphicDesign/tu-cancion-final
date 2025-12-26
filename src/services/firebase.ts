@@ -1,10 +1,13 @@
+
 // IMPORTANTE: Este archivo contiene la lógica REAL para conectar con Firebase.
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
@@ -32,12 +35,10 @@ const firebaseConfig = {
   messagingSenderId: "444251950172",
   appId: "1:444251950172:web:308e850ae2a4b1c0f6ea99",
   measurementId: "G-KDC5JPLGFR"
-
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-// Configurar persistencia: solo sesión actual
 setPersistence(auth, browserSessionPersistence);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
@@ -47,20 +48,28 @@ export const authService = {
     const result = await signInWithPopup(auth, googleProvider);
     return mapUser(result.user);
   },
-  loginWithRedirect: async (): Promise<void> => {
-    await signInWithPopup(auth, googleProvider);
+  
+  registerWithEmail: async (email: string, password: string, name: string): Promise<User> => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(result.user, { displayName: name });
+    return mapUser(result.user);
   },
+  
   loginWithEmail: async (email: string, password: string): Promise<User> => {
-      throw new Error("Implementar login real");
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return mapUser(result.user);
   },
+  
   logout: async () => {
     await signOut(auth);
   },
+  
   onAuthStateChanged: (callback: (user: User | null) => void) => {
     return onAuthStateChanged(auth, (firebaseUser) => {
       callback(firebaseUser ? mapUser(firebaseUser) : null);
     });
   },
+  
   getCurrentUser: (): User | null => {
     const u = auth.currentUser;
     return u ? mapUser(u) : null;
@@ -81,6 +90,7 @@ export const orderService = {
     const docRef = await addDoc(collection(db, "orders"), newOrderData);
     return { id: docRef.id, ...newOrderData } as Order;
   },
+  
   list: async (userId: string): Promise<Order[]> => {
     const q = query(collection(db, "orders"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
@@ -88,29 +98,34 @@ export const orderService = {
     querySnapshot.forEach((doc) => orders.push({ id: doc.id, ...doc.data() } as Order));
     return orders;
   },
+  
   getOrder: async (orderId: string): Promise<Order | null> => {
     const docRef = doc(db, "orders", orderId);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Order : null;
   },
+  
   payDeposit: async (orderId: string): Promise<Order> => {
-     const orderRef = doc(db, "orders", orderId);
-     await updateDoc(orderRef, { status: "deposit_paid" });
-     const updated = await getDoc(orderRef);
-     return { id: updated.id, ...updated.data() } as Order;
+    const orderRef = doc(db, "orders", orderId);
+    await updateDoc(orderRef, { status: "deposit_paid" });
+    const updated = await getDoc(orderRef);
+    return { id: updated.id, ...updated.data() } as Order;
   },
+  
   payFinal: async (orderId: string): Promise<Order> => {
     const orderRef = doc(db, "orders", orderId);
     await updateDoc(orderRef, { status: "completed" });
     const updated = await getDoc(orderRef);
     return { id: updated.id, ...updated.data() } as Order;
   },
+  
   getAll: async (): Promise<Order[]> => {
     const querySnapshot = await getDocs(collection(db, "orders"));
     const orders: Order[] = [];
     querySnapshot.forEach((doc) => orders.push({ id: doc.id, ...doc.data() } as Order));
     return orders;
   },
+  
   updateStatus: async (id: string, status: any, url?: string) => {
     const orderRef = doc(db, "orders", id);
     const updateData: any = { status };
