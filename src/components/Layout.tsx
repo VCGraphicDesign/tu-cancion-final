@@ -55,6 +55,14 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             >
               Empezar a Crear
             </Link>
+            {user && user.uid && (
+            <button 
+             onClick={onLogout}
+             className="bg-red-600 text-white px-6 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-red-700 transition-all"
+  >
+             Cerrar Sesión
+            </button>
+ )}
           </nav>
 
           {/* Menú móvil */}
