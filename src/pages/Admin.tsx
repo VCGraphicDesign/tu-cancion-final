@@ -16,8 +16,9 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Si no hay usuario, redirigir a auth
+    // Si no hay usuario, redirigir a auth (marcar que venía de admin)
     if (user === null) {
+      sessionStorage.setItem('fromAdmin', 'true');
       navigate('/auth');
       return;
     }
