@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Music, Play, CheckCircle, Clock, DollarSign, Upload, User, Filter, Search, Link as LinkIcon } from 'lucide-react';
-import { orderService } from '../services/mockBackend';
+import { orderService } from '../services/firebase';
 import { Order, User as UserType } from '../types';
 
 interface AdminProps {
@@ -16,19 +16,22 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Solo actuamos cuando el sistema confirma quién es el usuario
-    if (user) {
-      if (user.email === 'g.d.chile@gmail.com') {
-        // Si el correo coincide, cargamos tus datos del panel
-        loadData();
-      } else {
-        // Si es cualquier otro correo, lo expulsamos al inicio
-        navigate('/');
-      }
+    // Si no hay usuario, redirigir a auth
+    if (user === null) {
+      navigate('/auth');
+      return;
     }
-    // Si no hay 'user' todavía, el sistema no hace nada y te permite 
-    // permanecer en la ruta para que los otros componentes (como el Layout) 
-    // te redirijan a /auth si es necesario.
+
+    // Si hay usuario pero NO es admin, redirigir a inicio
+    if (user && user.email !== 'g.d.chile@gmail.com') {
+      navigate('/');
+      return;
+    }
+
+    // Si es admin, cargar datos
+    if (user && user.email === 'g.d.chile@gmail.com') {
+      loadData();
+    }
   }, [user, navigate]);
 
   const loadData = async () => {
@@ -91,7 +94,22 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     }
   };
 
-  if (!user || user.email !== 'g.d.chile@gmail.com') return null;
+  // Mostrar loading mientras verifica usuario
+  if (user === null || loading) {
+    return (
+      <div className="min-h-screen bg-bgDark flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Verificando permisos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no es admin, no mostrar nada (ya redirigió)
+  if (user.email !== 'g.d.chile@gmail.com') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-bgDark py-12 px-4 pb-32">
