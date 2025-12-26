@@ -7,7 +7,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  setPersistence,
+  browserSessionPersistence
 } from "firebase/auth";
 import { 
   getFirestore, 
@@ -35,10 +37,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-// 🔥 NUEVA CONFIGURACIÓN AQUÍ (JUSTO DESPUÉS DE 'const auth = ...'):
+// Configurar persistencia: solo sesión actual
 setPersistence(auth, browserSessionPersistence);
-
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
