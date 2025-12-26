@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             </Link>
 
             <Link 
-              to={user && user.email === 'g.d.chile@gmail.com' ? "/admin" : "/auth"} 
+              to={user && user.email === 'g.d.chile@gmail.com' ? "/admin" : "/"}
               className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2"
 >
               <LayoutDashboard size={20} />
