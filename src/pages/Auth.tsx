@@ -22,7 +22,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       const u = authService.getCurrentUser();
       if (u) {
         onLogin(u);
-        navigate('/create');
+        // Verificar si venía de admin para volver allí
+        const fromAdmin = sessionStorage.getItem('fromAdmin') === 'true';
+        if (fromAdmin) {
+          sessionStorage.removeItem('fromAdmin');
+          navigate('/admin');
+        } else {
+          navigate('/create');
+        }
       }
     };
     checkUser();
@@ -34,7 +41,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     try {
       const user = await authService.loginGoogle();
       onLogin(user);
-      navigate('/create');
+      // Verificar si venía de admin para volver allí
+      const fromAdmin = sessionStorage.getItem('fromAdmin') === 'true';
+      if (fromAdmin) {
+        sessionStorage.removeItem('fromAdmin');
+        navigate('/admin');
+      } else {
+        navigate('/create');
+      }
     } catch(err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Error al iniciar sesión con Google.');
@@ -64,7 +78,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         user = await authService.loginWithEmail(email, password);
       }
       onLogin(user);
-      navigate('/create');
+      // Verificar si venía de admin para volver allí
+      const fromAdmin = sessionStorage.getItem('fromAdmin') === 'true';
+      if (fromAdmin) {
+        sessionStorage.removeItem('fromAdmin');
+        navigate('/admin');
+      } else {
+        navigate('/create');
+      }
     } catch (err: any) {
       console.error('Auth error:', err);
       setError(err.message || 'Error de autenticación. Verifica tus credenciales.');
