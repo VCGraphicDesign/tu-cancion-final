@@ -38,8 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             </Link>
 
             <Link 
-              to={user ? "/admin" : "/auth"}
-              onClick={() => { if(!user) localStorage.setItem('admin_intent', 'true'); }}
+              to={user && user.email === 'g.d.chile@gmail.com' ? "/admin" : "/auth"} 
               className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2"
 >
               <LayoutDashboard size={20} />
