@@ -36,7 +36,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     try {
         const user = await authService.loginGoogle();
         onLogin(user);
-        navigate('/create');
+        if (localStorage.getItem('admin_intent') === 'true') {
+            localStorage.removeItem('admin_intent');
+            navigate('/admin');
+        } else {
+            navigate('/create');
+        }
     } catch(err) {
         setError('Error al iniciar sesión.');
         setIsLoading(false);
@@ -59,7 +64,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             user = await authService.loginWithEmail(email, password);
         }
         onLogin(user);
-        navigate('/create');
+        if (localStorage.getItem('admin_intent') === 'true') {
+            localStorage.removeItem('admin_intent');
+            navigate('/admin');
+        } else {
+            navigate('/create');
+        }
     } catch (err: any) {
         setError('Error de autenticación.');
         setIsLoading(false);
