@@ -47,7 +47,7 @@ const App: React.FC = () => {
           <Route path="/checkout" element={<PaymentGateway user={user} />} />
           <Route path="/pay/:orderId" element={<PaymentGateway user={user} />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
-          <Route path="/admin" element={user?.email === 'g.d.chile@gmail.com' ? <Admin user={user} /> : <Navigate to="/" />} />
+          <Route path="/admin" element={<Admin user={user} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>
