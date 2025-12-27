@@ -88,30 +88,25 @@ const CreateRequest: React.FC = () => {
 
   // NUEVO: Función que se ejecuta al hacer clic en "Ir al Pago"
   const handleGoToPayment = async () => {
-    if (!user) {
-      alert("Debes estar logueado para continuar.");
-      return;
-    }
-    try {
-      // 1. Debug: Ver qué datos estamos enviando
-      console.log("songsData:", songsData);
-      console.log("selectedPackage:", selectedPackage);
-
-      const newOrder = await orderService.create(user.uid, { 
+  if (!user) {
+    alert("Debes estar logueado para continuar.");
+    return;
+  }
+  try {
+    // 1. Guarda el pedido en Firestore
+    const newOrder = await orderService.create(user.uid, { 
       songs: songsData, 
       packageInfo: selectedPackage 
-   });
+    });
 
-      // 2. Muestra mensaje de prueba (temporalmente sin navegar)
-      alert("Pedido guardado: " + newOrder.id);
-      // navigate('/checkout', { state: { orderId: newOrder.id } });
+    // 2. Navega a la página de pago, pasando el ID del nuevo pedido
+    navigate('/checkout', { state: { orderId: newOrder.id } });
 
-    } catch (error) {
-      console.error("Error al crear el pedido:", error);
-      alert("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
-    }
-  };
-
+  } catch (error) {
+    console.error("Error al crear el pedido:", error);
+    alert("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
+  }
+};
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pt-10 pb-20 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
