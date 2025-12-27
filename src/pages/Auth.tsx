@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, AlertCircle, X, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import { authService } from '../services/firebase';
-import { User } from '../types';
+import { User as UserType } from '../types';
 
 interface AuthProps {
-  onLogin: (user: User) => void;
+  onLogin: (user: UserType) => void;
 }
 
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
