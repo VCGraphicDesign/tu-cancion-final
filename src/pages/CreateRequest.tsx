@@ -93,11 +93,11 @@ const CreateRequest: React.FC = () => {
       return;
     }
     try {
-      // 1. Guarda el pedido en Firestore
+      // 1. Guarda el pedido con datos simples para probar
       const newOrder = await orderService.create(user.uid, { 
-        songs: songsData, 
-        packageInfo: selectedPackage 
-      });
+      songs: [], // Datos simples vacíos
+      packageInfo: { id: '1', name: '1 Canción' } // Datos simples fijos
+});
 
       // 2. Muestra mensaje de prueba (temporalmente sin navegar)
       alert("Pedido guardado: " + newOrder.id);
