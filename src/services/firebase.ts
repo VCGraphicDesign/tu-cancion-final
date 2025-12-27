@@ -9,7 +9,10 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  setPersistence,
+  browserSessionPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 import { 
   getFirestore, 
@@ -34,9 +37,115 @@ const firebaseConfig = {
   measurementId: "G-KDC5JPLGFR"
 };
 
+
+const googleProvider = new GoogleAuthProvider();
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+// setPersistence(auth, browserLocalPersistence);  // ELIMINAR ESTA LÍNEA
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+export const authService = {
+  loginGoogle: async (): Promise<User> => {
+    const result = await signInWithPopup(auth, googleProvider);
+    return mapUser(result.user);
+  },
+  
+  registerWithEmail: async (email: string, password: string, name: string): Promise<User> => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(result.user, { displayName: name });
+    return mapUser(result.user);
+  },
+  
+  loginWithEmail: async (email: string, password: string): Promise<User> => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return mapUser(result.user);
+  },
+  
+  logout: async () => {
+    await signOut(auth);
+  },
+  
+  onAuthStateChanged: (callback: (user: User | null) => void) => {
+    return onAuthStateChanged(auth, (firebaseUser) => {
+      callback(firebaseUser ? mapUser(firebaseUser) : null);
+    });
+  },
+  
+  getCurrentUser: (): User | null => {
+    const u = auth.currentUser;
+    return u ? mapUser(u) : null;
+  }
+};
 
-// ... el resto del código igual ...
+export const orderService = {
+  create: async (userId: string, request: SongRequest): Promise<Order> => {
+    const estimatedPrice = 30000; 
+    const newOrderData = {
+      userId,
+      status: 'pending_payment',
+      request,
+      price: estimatedPrice,
+      depositAmount: estimatedPrice / 2,
+      createdAt: Date.now(),
+    };
+    const docRef = await addDoc(collection(db, "orders"), newOrderData);
+    return { id: docRef.id, ...newOrderData } as Order;
+  },
+  
+  list: async (userId: string): Promise<Order[]> => {
+    const q = query(collection(db, "orders"), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    const orders: Order[] = [];
+    querySnapshot.forEach((doc) => orders.push({ id: doc.id, ...doc.data() } as Order));
+    return orders;
+  },
+  
+  getOrder: async (orderId: string): Promise<Order | null> => {
+    const docRef = doc(db, "orders", orderId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Order : null;
+  },
+  
+  payDeposit: async (orderId: string): Promise<Order> => {
+    const orderRef = doc(db, "orders", orderId);
+    await updateDoc(orderRef, { status: "deposit_paid" });
+    const updated = await getDoc(orderRef);
+    return { id: updated.id, ...updated.data() } as Order;
+  },
+  
+  payFinal: async (orderId: string): Promise<Order> => {
+    const orderRef = doc(db, "orders", orderId);
+    await updateDoc(orderRef, { status: "completed" });
+    const updated = await getDoc(orderRef);
+    return { id: updated.id, ...updated.data() } as Order;
+  },
+  
+  getAll: async (): Promise<Order[]> => {
+    const querySnapshot = await getDocs(collection(db, "orders"));
+    const orders: Order[] = [];
+    querySnapshot.forEach((doc) => orders.push({ id: doc.id, ...doc.data() } as Order));
+    return orders;
+  },
+  
+  updateStatus: async (id: string, status: any, url?: string) => {
+    const orderRef = doc(db, "orders", id);
+    const updateData: any = { status };
+    if (url) updateData.finalUrl = url;
+    await updateDoc(orderRef, updateData);
+    const updated = await getDoc(orderRef);
+    return { id: updated.id, ...updated.data() } as Order;
+  }
+};
+
+const mapUser = (fbUser: FirebaseUser): User => {
+  return {
+    uid: fbUser.uid,
+    email: fbUser.email || "",
+    displayName: fbUser.displayName || fbUser.email?.split('@')[0]
+  };
+};
+
+export const calculateEstimatedPrice = (genre: string, instruments: string[], pkg: string): number => {
+  return 30000;
+};
+
+export const firebaseInfo = "Conexión Real de Firebase Activa";
