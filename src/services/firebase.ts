@@ -17,7 +17,8 @@ import {
 import { 
   getFirestore, 
   collection, 
-  addDoc, 
+  addDoc,
+  setDoc, 
   query, 
   where, 
   getDocs, 
@@ -87,7 +88,8 @@ export const orderService = {
       depositAmount: estimatedPrice / 2,
       createdAt: Date.now(),
     };
-    const docRef = await addDoc(collection(db, "orders"), newOrderData);
+    const docRef = doc(collection(db, "orders"));
+    await setDoc(docRef, newOrderData);
     return { id: docRef.id, ...newOrderData } as Order;
   },
   
