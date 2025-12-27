@@ -99,8 +99,9 @@ const CreateRequest: React.FC = () => {
         packageInfo: selectedPackage 
       });
 
-      // 2. Navega a la página de pago, pasando el ID del nuevo pedido
-      navigate('/checkout', { state: { orderId: newOrder.id } });
+      // 2. Muestra mensaje de prueba (temporalmente sin navegar)
+      alert("Pedido guardado: " + newOrder.id);
+      // navigate('/checkout', { state: { orderId: newOrder.id } });
 
     } catch (error) {
       console.error("Error al crear el pedido:", error);
