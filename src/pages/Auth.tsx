@@ -22,11 +22,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       const u = authService.getCurrentUser();
       if (u) {
         onLogin(u);
-        // Verificar si venía de admin para volver allí
-        const fromAdmin = sessionStorage.getItem('fromAdmin') === 'true';
-        if (fromAdmin) {
-          sessionStorage.removeItem('fromAdmin');
-          navigate('/admin');
+        const destination = sessionStorage.getItem('authDestination');
+        sessionStorage.removeItem('authDestination');
+        
+        if (destination === 'admin') {
+          if (u.email === 'g.d.chile@gmail.com') {
+            navigate('/admin');
+          } else {
+            navigate('/');
+          }
         } else {
           navigate('/create');
         }
@@ -41,11 +45,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     try {
       const user = await authService.loginGoogle();
       onLogin(user);
-      // Verificar si venía de admin para volver allí
-      const fromAdmin = sessionStorage.getItem('fromAdmin') === 'true';
-      if (fromAdmin) {
-        sessionStorage.removeItem('fromAdmin');
-        navigate('/admin');
+      const destination = sessionStorage.getItem('authDestination');
+      sessionStorage.removeItem('authDestination');
+      
+      if (destination === 'admin') {
+        if (user.email === 'g.d.chile@gmail.com') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         navigate('/create');
       }
@@ -78,11 +86,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         user = await authService.loginWithEmail(email, password);
       }
       onLogin(user);
-      // Verificar si venía de admin para volver allí
-      const fromAdmin = sessionStorage.getItem('fromAdmin') === 'true';
-      if (fromAdmin) {
-        sessionStorage.removeItem('fromAdmin');
-        navigate('/admin');
+      const destination = sessionStorage.getItem('authDestination');
+      sessionStorage.removeItem('authDestination');
+      
+      if (destination === 'admin') {
+        if (user.email === 'g.d.chile@gmail.com') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         navigate('/create');
       }

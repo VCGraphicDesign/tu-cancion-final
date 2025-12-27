@@ -16,9 +16,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Si no hay usuario, redirigir a auth (marcar que venía de admin)
+    // Si no hay usuario, redirigir a auth
     if (user === null) {
-      sessionStorage.setItem('fromAdmin', 'true');
       navigate('/auth');
       return;
     }
@@ -38,7 +37,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-        const data = await orderService.getAll();
+      const data = await orderService.getAll();
+      setOrders(data);
         setOrders(data);
     } catch (e) {
         console.error("Error loading admin data", e);
