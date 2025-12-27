@@ -12,7 +12,8 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
   setPersistence,
-  browserSessionPersistence
+  browserSessionPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 import { 
   getFirestore, 
@@ -39,7 +40,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-setPersistence(auth, browserSessionPersistence);
+setPersistence(auth, browserLocalPersistence);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
