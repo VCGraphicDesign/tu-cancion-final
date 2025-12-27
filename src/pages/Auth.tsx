@@ -21,18 +21,19 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     const checkUser = async () => {
       const u = authService.getCurrentUser();
       if (u) {
-        onLogin(u);
         const destination = sessionStorage.getItem('authDestination');
         sessionStorage.removeItem('authDestination');
         
         if (destination === 'admin') {
           if (u.email === 'g.d.chile@gmail.com') {
+            onLogin(u);
             navigate('/admin');
           } else {
-            navigate('/');
             await authService.logout();
+            navigate('/');
           }
         } else {
+          onLogin(u);
           navigate('/create');
         }
       }
