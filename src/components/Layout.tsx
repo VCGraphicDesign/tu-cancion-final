@@ -37,26 +37,33 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               Inicio
             </Link>
 
-            <Link 
-              to="/auth"
-              onClick={() => sessionStorage.setItem('authDestination', 'admin')}
-              className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2"
-            >
-              <LayoutDashboard size={20} />
-              Admin
-            </Link>
+            {user && user.email === 'g.d.chile@gmail.com' && (
+              <Link 
+                to="/admin"
+                className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2"
+              >
+                <LayoutDashboard size={20} />
+                Admin
+              </Link>
+            )}
 
             <Link to="/examples" className="text-[15px] font-bold text-[#1e5d4d]">
               Ejemplos
             </Link>
             
-            <Link 
-              to="/auth"
-              onClick={() => sessionStorage.setItem('authDestination', 'create')}
-              className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all"
-            >
-              Empezar a Crear
-            </Link>
+            {user ? (
+              <Link to="/create" className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all">
+                Empezar a Crear
+              </Link>
+            ) : (
+              <Link 
+                to="/auth"
+                onClick={() => sessionStorage.setItem('authDestination', 'create')}
+                className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all"
+              >
+                Empezar a Crear
+              </Link>
+            )}
             {user && user.uid && (
             <button 
              onClick={onLogout}
