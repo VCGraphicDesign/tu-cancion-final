@@ -30,6 +30,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             navigate('/admin');
           } else {
             navigate('/');
+            await authService.logout();
           }
         } else {
           navigate('/create');
@@ -53,6 +54,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           navigate('/admin');
         } else {
           navigate('/');
+          await authService.logout();
         }
       } else {
         navigate('/create');
@@ -94,6 +96,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           navigate('/admin');
         } else {
           navigate('/');
+          await authService.logout();
         }
       } else {
         navigate('/create');
