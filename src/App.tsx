@@ -24,7 +24,7 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = (newUser: User) => {
+  const handleLogin = (newUser: User | null) => {
     setUser(newUser);
   };
 
