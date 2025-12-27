@@ -88,8 +88,7 @@ export const orderService = {
       depositAmount: estimatedPrice / 2,
       createdAt: Date.now(),
     };
-    const docRef = doc(collection(db, "orders"));
-    await setDoc(docRef, newOrderData);
+    const docRef = await addDoc(collection(db, "orders"), newOrderData);
     return { id: docRef.id, ...newOrderData } as Order;
   },
   
