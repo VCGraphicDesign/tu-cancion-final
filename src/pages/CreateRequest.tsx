@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'; // NUEVO: Se añade useEffect
-import { useNavigate } from 'react-router-dom'; // NUEVO: Se añade useNavigate
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
-import { orderService, authService } from '../services/firebase'; // NUEVO: Se importa el servicio
+import { orderService } from '../services/firebase';
 
 // LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
@@ -36,29 +36,17 @@ interface Package {
   tag?: string;
 }
 
-const CreateRequest: React.FC = () => {
+interface CreateRequestProps {
+  user: any;
+}
+
+const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const [step, setStep] = useState(1);
   const [subStep, setSubStep] = useState(1); // 1: Campos, 2: Historia
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [songsData, setSongsData] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null); // NUEVO: Estado para guardar el usuario logueado
-  const navigate = useNavigate(); // NUEVO: Hook para navegar entre páginas
-
-  // NUEVO: Efecto para obtener el usuario logueado al cargar la página
-  useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged((u) => {
-      if (!u) {
-        // Redirigir a auth solo si no estamos ya en auth
-        if (window.location.pathname !== '/auth') {
-          navigate('/auth', { replace: true });
-        }
-      } else {
-        setUser(u);
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+  const navigate = useNavigate();
 
   const PACKAGES: Package[] = [
     { id: '1', name: '1 Canción', songs: 1, price: 30000, icon: <Music className="w-5 h-5" /> },
