@@ -95,8 +95,13 @@ const CreateRequest: React.FC = () => {
   try {
     // 1. Guarda el pedido en Firestore
     const newOrder = await orderService.create(user.uid, { 
-  packageInfo: selectedPackage,
-  songs: songsData
+    packageInfo: {
+    id: selectedPackage?.id,
+    name: selectedPackage?.name,
+    songs: selectedPackage?.songs,
+    price: selectedPackage?.price
+  },
+    songs: songsData
 });
 
     // 2. Navega a la página de pago, pasando el ID del nuevo pedido
