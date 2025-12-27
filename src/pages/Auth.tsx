@@ -5,7 +5,7 @@ import { authService } from '../services/firebase';
 import { User as UserType } from '../types';
 
 interface AuthProps {
-  onLogin: (user: UserType) => void;
+  onLogin: (user: UserType | null) => void;
 }
 
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
@@ -30,6 +30,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             navigate('/admin');
           } else {
             await authService.logout();
+            onLogin(null);
             navigate('/');
           }
         } else {
