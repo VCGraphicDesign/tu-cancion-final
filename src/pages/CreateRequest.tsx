@@ -93,11 +93,14 @@ const CreateRequest: React.FC = () => {
       return;
     }
     try {
-      // 1. Guarda el pedido con datos simples para probar
+      // 1. Debug: Ver qué datos estamos enviando
+      console.log("songsData:", songsData);
+      console.log("selectedPackage:", selectedPackage);
+
       const newOrder = await orderService.create(user.uid, { 
-      songs: [], // Datos simples vacíos
-      packageInfo: { id: '1', name: '1 Canción' } // Datos simples fijos
-});
+      songs: songsData, 
+      packageInfo: selectedPackage 
+   });
 
       // 2. Muestra mensaje de prueba (temporalmente sin navegar)
       alert("Pedido guardado: " + newOrder.id);
