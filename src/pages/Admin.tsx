@@ -41,9 +41,9 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       setOrders(data);
         setOrders(data);
     } catch (e) {
-        console.error("Error loading admin data", e);
+      console.error("Error loading admin data", e);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -51,15 +51,37 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     let url = undefined;
 
     if (newStatus === 'preview_ready') {
-        const input = window.prompt("Ingresa el enlace del AVANCE (Google Drive):");
-        if (!input) return;
-        url = input;
+      // Crear input para seleccionar archivo de audio
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'audio/*';
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        
+        try {
+          // Subir archivo a Firebase Storage
+          url = await orderService.uploadAudioFile(file, orderId, 'preview');
+          
+          if(!window.confirm(`¿Confirmar cambio de estado a: ${newStatus}?`)) return;
+          
+          setProcessingId(orderId);
+          await orderService.updateStatus(orderId, newStatus, url);
+          loadData();
+        } catch(error) {
+          alert("Error subiendo el archivo de audio");
+        } finally {
+          setProcessingId(null);
+        }
+      };
+      input.click();
+      return; // Salir temprano para esperar la selección de archivo
     }
 
     if (newStatus === 'completed') {
-        const input = window.prompt("Ingresa el enlace de descarga de la CANCIÓN FINAL:");
-        if (!input) return;
-        url = input;
+      const input = window.prompt("Ingresa el enlace de descarga de la CANCIÓN FINAL:");
+      if (!input) return;
+      url = input;
     }
 
     if(!window.confirm(`¿Confirmar cambio de estado a: ${newStatus}?`)) return;
