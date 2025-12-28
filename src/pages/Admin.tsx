@@ -108,7 +108,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   }
 
   // Si no es admin, no mostrar nada (ya redirigió)
-  if (user.email !== 'g.d.chile@gmail.com') {
+  if (user.email !== 'admin@tucancion.app') {
     return null;
   }
 
