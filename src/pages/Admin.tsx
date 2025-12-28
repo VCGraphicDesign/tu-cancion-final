@@ -23,13 +23,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     }
 
     // Si hay usuario pero NO es admin, redirigir a inicio
-    if (user && user.email !== 'g.d.chile@gmail.com') {
+    if (user && user.email !== 'admin@tucancion.app') {
       navigate('/');
       return;
     }
 
     // Si es admin, cargar datos
-    if (user && user.email === 'g.d.chile@gmail.com') {
+    if (user && user.email === 'admin@tucancion.app') {
       loadData();
     }
   }, [user, navigate]);
