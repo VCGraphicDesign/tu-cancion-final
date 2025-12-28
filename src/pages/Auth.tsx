@@ -53,7 +53,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       sessionStorage.removeItem('authDestination');
       
       if (destination === 'admin') {
-        if (user.email === 'g.d.chile@gmail.com') {
+        if (user.email === 'admin@tucancion.app') {
           navigate('/admin');
         } else {
           navigate('/');
@@ -95,7 +95,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       sessionStorage.removeItem('authDestination');
       
       if (destination === 'admin') {
-        if (user.email === 'g.d.chile@gmail.com') {
+        if (user.email === 'admin@tucancion.app') {
           navigate('/admin');
         } else {
           navigate('/');
