@@ -152,8 +152,10 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                             </div>
                             <div className="lg:w-64 flex flex-col gap-3 justify-center border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-6">
                                 <div className="text-center mb-2"><span className="block text-2xl font-bold text-white">{formatMoney(order.price)}</span></div>
+                                {order.status === 'pending_payment' && <button onClick={() => handleStatusUpdate(order.id, 'deposit_paid')} className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg"><CheckCircle size={16} className="inline mr-1"/> Pago Recibido</button>}
                                 {order.status === 'deposit_paid' && <button onClick={() => handleStatusUpdate(order.id, 'in_progress')} className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"><Clock size={16} className="inline mr-1"/> En Proceso</button>}
                                 {order.status === 'in_progress' && <button onClick={() => handleStatusUpdate(order.id, 'preview_ready')} className="w-full py-2 bg-accent text-bgDark font-bold rounded-lg"><Upload size={16} className="inline mr-1"/> Subir Avance</button>}
+                                {order.status === 'preview_ready' && <button onClick={() => handleStatusUpdate(order.id, 'completed')} className="w-full py-2 bg-primary hover:bg-primaryDark text-white font-bold rounded-lg"><CheckCircle size={16} className="inline mr-1"/> Completado</button>}
                             </div>
                         </div>
                     </div>
