@@ -11,7 +11,7 @@ const AdminLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     // Verificamos si es tu correo autorizado
-    if (email.trim().toLowerCase() === 'g.d.chile@gmail.com') {
+    if (email.trim().toLowerCase() === 'admin@tucancion.app') {
       // Si el correo es correcto, simulamos el éxito del login para entrar al panel
       navigate('/admin');
     } else {
