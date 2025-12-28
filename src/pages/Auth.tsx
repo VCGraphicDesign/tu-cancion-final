@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Music, AlertCircle, X, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
+import { Music, AlertCircle, X, Mail, Lock, User as UserIcon, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/firebase';
 import { User as UserType } from '../types';
 
@@ -15,6 +15,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -148,7 +149,33 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <p className="text-gray-400 mt-4">Cargando...</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Tabs para elegir entre Ingresar y Registrarse */}
+            <div className="flex bg-bgDark border border-white/10 rounded-xl p-1">
+              <button
+                type="button"
+                onClick={() => setIsRegistering(false)}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  !isRegistering 
+                    ? 'bg-primary text-white shadow-md' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Ingresar
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRegistering(true)}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  isRegistering 
+                    ? 'bg-primary text-white shadow-md' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Registrarse
+              </button>
+            </div>
+
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {isRegistering && (
                 <div className="relative">
@@ -179,14 +206,21 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               <div className="relative">
                 <Lock className="absolute left-4 top-3 text-gray-500" size={18} />
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"}
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
-                  className="w-full h-12 pl-12 bg-bgDark border border-white/10 rounded-xl text-white" 
+                  className="w-full h-12 pl-12 pr-12 bg-bgDark border border-white/10 rounded-xl text-white" 
                   placeholder="Contraseña" 
                   required 
                   minLength={6} 
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3 text-gray-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
               <button 
@@ -198,16 +232,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <ArrowRight size={18} />
               </button>
             </form>
-            
-            <div className="text-center pt-2">
-              <button 
-                type="button" 
-                onClick={() => setIsRegistering(!isRegistering)} 
-                className="text-sm text-accent hover:underline"
-              >
-                {isRegistering ? '¿Ya tienes cuenta? Ingresa' : '¿No tienes cuenta? Regístrate'}
-              </button>
-            </div>
           </div>
         )}
       </div>
