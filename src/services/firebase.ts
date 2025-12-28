@@ -50,9 +50,16 @@ export const authService = {
   },
   
   registerWithEmail: async (email: string, password: string, name: string): Promise<User> => {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(result.user, { displayName: name });
-    return mapUser(result.user);
+    console.log("Intentando registrar:", email);
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Registro exitoso:", result.user.uid);
+      await updateProfile(result.user, { displayName: name });
+      return mapUser(result.user);
+    } catch (error: any) {
+      console.error("Error en registro:", error.code, error.message);
+      throw error;
+    }
   },
   
   loginWithEmail: async (email: string, password: string): Promise<User> => {
