@@ -14,42 +14,42 @@ const EXAMPLES: ExampleSong[] = [
     {
         id: 1,
         title: "Tu Historia en Canción",
-        src: "https://drive.google.com/file/d/1MDh3WHPjFOP3ovKsz9DaeQmAyiCmF_ho/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FTu%20Historia%20en%20Cancion.wav?alt=media"
     },
     {
         id: 2,
         title: "Cómo te extraño",
-        src: "https://drive.google.com/file/d/1kbjApoVsndajoCx_1Lgf_l3V1QC98tzv/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FComo%20te%20extra%C3%B1o_expff.mp3?alt=media"
     },
     {
         id: 3,
         title: "Resonance",
-        src: "https://drive.google.com/file/d/1bryr-ljHkA9hOKKtRj8kXSRf3-gInHtk/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FResonance_ejpff.wav?alt=media"
     },
     {
         id: 4,
         title: "60...",
-        src: "https://drive.google.com/file/d/1c3bTkC9N8MD_ogmOzwMXcLKJKzooCIz7/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2F60..._expff.wav?alt=media"
     },
     {
         id: 5,
         title: "No soy el amor",
-        src: "https://drive.google.com/file/d/18nL-ilIzR0aF1P-3YPr8e17OWnZ-97kZ/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FNo%20soy%20el%20amor_ejpff.wav?alt=media"
     },
     {
         id: 6,
         title: "No soy el amor (Acústico)",
-        src: "https://drive.google.com/file/d/1SAfuiRMiVqBoybLOlQTJeJXWoGN-nVeR/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FNo%20soy%20el%20amor_acustico_ejpff.mp3?alt=media"
     },
     {
         id: 7,
         title: "Encuéntrala",
-        src: "https://drive.google.com/file/d/1CxpI3xYL7qFmplWGW-njRpxV2ygO6Pt5/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FEncuentrala_ejpff.wav?alt=media"
     },
     {
         id: 8,
         title: "Invisible",
-        src: "https://drive.google.com/file/d/1NAqmQVKgYnxauE2p-a2jQNKvBak8d2Tm/view?usp=sharing"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FInvisible_ejpff.wav?alt=media"
     }
 ];
 
