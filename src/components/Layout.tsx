@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               Inicio
             </Link>
 
-            {user && user.email === 'admin@tucancion.app' && (
+            {user && user.email === 'g.d.chile@gmail.com' && (
               <Link 
                 to="/admin"
                 className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2"
