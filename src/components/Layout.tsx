@@ -70,7 +70,11 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
              onClick={async () => {
                 await authService.logout();
                 onLogout();
-                window.location.href = '/';
+                // Limpiar todo el storage
+                localStorage.clear();
+                sessionStorage.clear();
+                // Forzar recarga completa
+                window.location.replace('/');
               }}
              className="bg-red-600 text-white px-6 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-red-700 transition-all"
   >
