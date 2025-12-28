@@ -149,25 +149,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-2">
-              <button 
-                onClick={handleSocialLogin} 
-                className="h-12 bg-white hover:bg-gray-100 rounded-xl flex items-center justify-center gap-3 text-gray-800 font-bold transition-colors"
-              >
-                <img src="https://www.google.com/favicon.ico" alt="G" className="w-5 h-5" />
-                Continuar con Google
-              </button>
-            </div>
-            
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-surface px-2 text-gray-500">O con correo</span>
-              </div>
-            </div>
-
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {isRegistering && (
                 <div className="relative">
