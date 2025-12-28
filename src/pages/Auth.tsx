@@ -26,7 +26,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         sessionStorage.removeItem('authDestination');
         
         if (destination === 'admin') {
-          if (u.email === 'g.d.chile@gmail.com') {
+          if (u.email === 'admin@tucancion.app') {
             onLogin(u);
             navigate('/admin');
           } else {
