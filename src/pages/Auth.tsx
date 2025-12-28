@@ -25,17 +25,16 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         const destination = sessionStorage.getItem('authDestination');
         sessionStorage.removeItem('authDestination');
         
-        // Primero verificar si es admin
-        if (u.email === 'g.d.chile@gmail.com') {
-          onLogin(u);
-          navigate('/admin');
-        } else if (destination === 'admin') {
-          // Si no es admin pero intentó ir a admin
-          await authService.logout();
-          onLogin(null);
-          navigate('/');
+        if (destination === 'admin') {
+          if (u.email === 'g.d.chile@gmail.com') {
+            onLogin(u);
+            navigate('/admin');
+          } else {
+            await authService.logout();
+            onLogin(null);
+            navigate('/');
+          }
         } else {
-          // Usuario normal va a create
           onLogin(u);
           navigate('/create');
         }
