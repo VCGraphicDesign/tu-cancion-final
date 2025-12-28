@@ -9,22 +9,27 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser,
-  setPersistence,
-  browserSessionPersistence,
-  browserLocalPersistence
+  User as FirebaseUser
 } from "firebase/auth";
 import { 
   getFirestore, 
   collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
   addDoc, 
+  updateDoc, 
+  deleteDoc, 
   query, 
   where, 
-  getDocs, 
-  doc, 
-  updateDoc,
-  getDoc
+  serverTimestamp 
 } from "firebase/firestore";
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from "firebase/storage";
 import { User, Order, SongRequest } from '../types';
 
 const firebaseConfig = {
@@ -43,6 +48,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 // setPersistence(auth, browserLocalPersistence);  // ELIMINAR ESTA LÍNEA
 const db = getFirestore(app);
+const storage = getStorage(app);
 export const authService = {
   loginGoogle: async (): Promise<User> => {
     const result = await signInWithPopup(auth, googleProvider);
@@ -136,10 +142,26 @@ export const orderService = {
   updateStatus: async (id: string, status: any, url?: string) => {
     const orderRef = doc(db, "orders", id);
     const updateData: any = { status };
-    if (url) updateData.finalUrl = url;
+    if (url) {
+      if (status === 'preview_ready') {
+        updateData.previewUrl = url;
+      } else if (status === 'completed') {
+        updateData.finalUrl = url;
+      }
+    }
     await updateDoc(orderRef, updateData);
     const updated = await getDoc(orderRef);
     return { id: updated.id, ...updated.data() } as Order;
+  },
+
+  uploadAudioFile: async (file: File, orderId: string, type: 'preview' | 'final'): Promise<string> => {
+    const fileName = `${orderId}_${type}_${Date.now()}`;
+    const storageRef = ref(storage, `audio/${fileName}`);
+    
+    await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(storageRef);
+    
+    return downloadUrl;
   }
 };
 
