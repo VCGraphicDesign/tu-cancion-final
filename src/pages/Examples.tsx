@@ -14,42 +14,42 @@ const EXAMPLES: ExampleSong[] = [
     {
         id: 1,
         title: "Tu Historia en Canción",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FTu%20Historia%20en%20Cancion.wav?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FTu%20Historia%20en%20Cancion.wav?alt=media&token=9f58e09a-0ea2-4994-83fb-759e20180a97"
     },
     {
         id: 2,
         title: "Cómo te extraño",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FComo%20te%20extra%C3%B1o_expff.mp3?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FComo%20te%20extra%C3%B1o_expff.mp3?alt=media&token=c50fe5da-6285-47e2-8605-d0fe323e185e"
     },
     {
         id: 3,
         title: "Resonance",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FResonance_ejpff.wav?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FResonance_ejpff.wav?alt=media&token=df16b4f2-96c5-4911-962e-7ff1e6f933c6"
     },
     {
         id: 4,
         title: "60...",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2F60..._expff.wav?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2F60..._expff.wav?alt=media&token=cbfb7c50-d372-447f-9c79-e9cd8dd5e68d"
     },
     {
         id: 5,
         title: "No soy el amor",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FNo%20soy%20el%20amor_ejpff.wav?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FNo%20soy%20el%20amor_ejpff.wav?alt=media&token=544823bf-10fd-4cf7-9247-01a5bbd698d3"
     },
     {
         id: 6,
         title: "No soy el amor (Acústico)",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FNo%20soy%20el%20amor_acustico_ejpff.mp3?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FNo%20soy%20el%20amor_acustico_ejpff.mp3?alt=media&token=b6fed574-82b8-4d37-8567-da544bb3c16c"
     },
     {
         id: 7,
         title: "Encuéntrala",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FEncuentrala_ejpff.wav?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FEncuentrala_ejpff.wav?alt=media&token=d324d0b3-bd77-46f9-9db1-f2b028d4d607"
     },
     {
         id: 8,
         title: "Invisible",
-        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.appspot.com/o/audio%2FEjemplos%2FInvisible_ejpff.wav?alt=media"
+        src: "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/audio%2FEjemplos%2FInvisible_ejpff.wav?alt=media&token=69ba04e8-5994-44d1-ba4e-239ce69d03d5"
     }
 ];
 
