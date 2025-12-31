@@ -190,6 +190,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className
         setIsLoading(true); 
         await audio.play();
         setIsPlaying(true);
+        setIsLoading(false);
       } catch (error) {
         console.error("Play failed:", error);
         setIsLoading(false);
