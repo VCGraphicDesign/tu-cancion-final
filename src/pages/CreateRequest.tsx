@@ -90,7 +90,9 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
         occasion: songsData[0]?.occasion || '',
         singer: songsData[0]?.singer || '',
         instruments: songsData[0]?.instruments || [],
-        storyText: songsData[0]?.story || ''
+        storyText: songsData[0]?.story || '',
+        customerEmail: user.email,
+        customerName: user.displayName
       });
 
       // 2. Envía email de notificación con todos los campos
