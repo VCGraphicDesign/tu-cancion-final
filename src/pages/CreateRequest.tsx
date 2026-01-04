@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
 import { orderService } from '../services/firebase';
-import { emailService } from '../services/emailService';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
@@ -97,7 +97,9 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
       // 2. Envía email de notificación con todos los campos
       try {
-        await emailService.sendOrderNotification(newOrder, user);
+        const sendOrderEmail = httpsCallable(getFunctions(), 'sendOrderEmail');
+        await sendOrderEmail({ orderData: newOrder, userData: user });
+        console.log('✅ Email enviado correctamente');
       } catch (emailError) {
         console.error('Error al enviar email:', emailError);
         // No interrumpir el flujo si el email falla
