@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
 import { orderService } from '../services/firebase';
+import { emailService } from '../services/emailService';
 
 // LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
@@ -76,30 +77,39 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
   // NUEVO: Función que se ejecuta al hacer clic en "Ir al Pago"
   const handleGoToPayment = async () => {
-  if (!user) {
-    alert("Debes estar logueado para continuar.");
-    return;
-  }
-  try {
-    // 1. Guarda el pedido en Firestore
-    const newOrder = await orderService.create(user.uid, { 
-    packageInfo: {
-    id: selectedPackage?.id,
-    name: selectedPackage?.name,
-    songs: selectedPackage?.songs,
-    price: selectedPackage?.price
-  },
-    songs: songsData
-});
+    if (!user) {
+      alert("Debes estar logueado para continuar.");
+      return;
+    }
+    try {
+      // 1. Guarda el pedido en Firestore
+      const newOrder = await orderService.create(user.uid, { 
+        package: selectedPackage?.id === '1' ? 'single' : selectedPackage?.id === '2' ? 'duo' : 'trio',
+        genre: songsData[0]?.genre || '',
+        mood: songsData[0]?.mood || '',
+        occasion: songsData[0]?.occasion || '',
+        singer: songsData[0]?.singer || '',
+        instruments: songsData[0]?.instruments || [],
+        storyText: songsData[0]?.story || ''
+      });
 
-    // 2. Navega a la página de pago, pasando el ID del nuevo pedido
-    navigate('/checkout', { state: { orderId: newOrder.id } });
+      // 2. Envía email de notificación con todos los campos
+      try {
+        await emailService.sendOrderNotification(newOrder, user);
+      } catch (emailError) {
+        console.error('Error al enviar email:', emailError);
+        // No interrumpir el flujo si el email falla
+      }
 
-  } catch (error) {
-    console.error("Error al crear el pedido:", error);
-    alert("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
-  }
-};
+      // 3. Navega a la página de pago, pasando el ID del nuevo pedido
+      navigate('/checkout', { state: { orderId: newOrder.id } });
+
+    } catch (error) {
+      console.error("Error al crear el pedido:", error);
+      alert("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pt-10 pb-20 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
