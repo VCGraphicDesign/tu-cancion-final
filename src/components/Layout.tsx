@@ -13,7 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // URL de tu logo
-  const logoUrl = "https://lh3.googleusercontent.com/d/1nRRw1GCFuj6XKd1O3pogS1G7q8HH7Ebw";
+  const logoUrl = "https://firebasestorage.googleapis.com/v0/b/tu-cancion-final.firebasestorage.app/o/imagenes%2FCopilot_20251205_144321.png?alt=media&token=31933ff4-5cd3-4aa7-a579-29bbbd598ee4";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
