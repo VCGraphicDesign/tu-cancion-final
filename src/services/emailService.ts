@@ -1,10 +1,13 @@
 import { MailService } from '@sendgrid/mail';
 
 const sgMail = new MailService();
-sgMail.setApiKey(process.env.VITE_SENDGRID_API_KEY || '');
+sgMail.setApiKey((import.meta as any).env.VITE_SENDGRID_API_KEY || '');
 
 export const emailService = {
   sendOrderNotification: async (orderData: any, userData: any) => {
+    console.log('📧 Intentando enviar email...');
+    console.log('📧 API Key disponible:', !!(import.meta as any).env.VITE_SENDGRID_API_KEY);
+    
     const msg = {
       to: 'contacto@tucancion.app',
       from: 'contacto@tucancion.app',
@@ -51,9 +54,9 @@ export const emailService = {
 
     try {
       await sgMail.send(msg);
-      console.log('Email de pedido enviado correctamente');
+      console.log('✅ Email de pedido enviado correctamente');
     } catch (error) {
-      console.error('Error al enviar email de pedido:', error);
+      console.error('❌ Error al enviar email de pedido:', error);
       throw error;
     }
   }
