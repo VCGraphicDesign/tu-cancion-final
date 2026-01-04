@@ -20,6 +20,8 @@ export interface SongRequest {
 export interface Order {
   id: string;
   userId: string;
+  customerEmail?: string;
+  customerName?: string;
   status: 'pending_payment' | 'deposit_paid' | 'in_progress' | 'preview_ready' | 'completed';
   request: SongRequest;
   price: number;
