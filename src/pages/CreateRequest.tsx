@@ -97,9 +97,24 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
       // 2. Envía email de notificación con todos los campos
       try {
-        const sendOrderEmail = httpsCallable(getFunctions(), 'sendOrderEmail');
-        await sendOrderEmail({ orderData: newOrder, userData: user });
-        console.log('✅ Email enviado correctamente');
+        const response = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderDetails: newOrder,
+            customerEmail: user.email,
+            customerName: user.displayName
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ Email enviado correctamente');
+        } else {
+          console.error('❌ Error al enviar email:', result.error);
+        }
       } catch (emailError) {
         console.error('Error al enviar email:', emailError);
         // No interrumpir el flujo si el email falla
