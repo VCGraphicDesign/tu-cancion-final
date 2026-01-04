@@ -128,7 +128,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const filteredOrders = orders.filter(o => {
       if (filter === 'all') return true;
       return o.status === filter;
-  });
+  }).sort((a, b) => b.createdAt - a.createdAt);
 
   const StatusBadge = ({ status }: { status: string }) => {
     switch (status) {
