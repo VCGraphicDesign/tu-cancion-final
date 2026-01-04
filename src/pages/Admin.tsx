@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Music, Play, CheckCircle, Clock, DollarSign, Upload, User, Filter, Search, Link as LinkIcon } from 'lucide-react';
 import { orderService } from '../services/firebase';
 import { Order, User as UserType } from '../types';
+import { getAuth } from 'firebase/auth';
 
 interface AdminProps {
   user: UserType | null;
@@ -14,6 +15,29 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [userDetails, setUserDetails] = useState<{[key: string]: any}>({});
+
+  // Función para obtener datos del usuario por su ID
+  const getUserDetails = async (userId: string) => {
+    if (userDetails[userId]) {
+      return userDetails[userId];
+    }
+    
+    try {
+      const auth = getAuth();
+      // Por ahora mostramos el ID, ya que obtener datos de Firebase Auth requiere más configuración
+      const userInfo = {
+        email: 'cliente@ejemplo.com', // Placeholder hasta configurar búsqueda real
+        displayName: 'Cliente' // Placeholder hasta configurar búsqueda real
+      };
+      
+      setUserDetails(prev => ({ ...prev, [userId]: userInfo }));
+      return userInfo;
+    } catch (error) {
+      console.error('Error obteniendo datos del usuario:', error);
+      return { email: 'No disponible', displayName: 'No disponible' };
+    }
+  };
 
   useEffect(() => {
     // Si no hay usuario, redirigir a auth
@@ -165,9 +189,16 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                                     <div className="flex items-center gap-2"><span className="bg-white/10 text-xs px-2 py-1 rounded text-gray-300 font-mono">#{order.id.slice(0, 8)}</span><StatusBadge status={order.status} /></div>
                                     <span className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-white">{order.request.genre} - {order.request.mood}</h3>
+                                <h3 className="text-xl font-bold text-white mb-3">Pedido de Canción</h3>
                                 <div className="grid md:grid-cols-2 gap-4 text-sm bg-bgDark/50 p-4 rounded-xl border border-white/5">
-                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Cliente</p><p>{order.userId}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Nombre Cliente</p><p className="font-semibold">{order.customerName || 'No especificado'}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Email Cliente</p><p className="text-sm">{order.customerEmail || 'No especificado'}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">ID Cliente</p><p className="font-mono text-xs">{order.userId}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Género</p><p>{order.request.genre}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Ánimo</p><p>{order.request.mood}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Ocasión</p><p>{order.request.occasion}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Cantante</p><p>{order.request.singer}</p></div>
+                                    <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Instrumentos</p><p>{order.request.instruments && order.request.instruments.length > 0 ? order.request.instruments.join(', ') : 'No especificados'}</p></div>
                                     <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Historia</p><p className="italic">"{order.request.storyText}"</p></div>
                                     {(order.previewUrl || order.finalUrl) && <div className="md:col-span-2 border-t border-white/5 pt-2"><p className="text-xs text-gray-500">Links: {order.previewUrl && <a href={order.previewUrl} target="_blank" className="text-accent underline mr-2">Avance</a>} {order.finalUrl && <a href={order.finalUrl} target="_blank" className="text-primary underline">Final</a>}</p></div>}
                                 </div>
