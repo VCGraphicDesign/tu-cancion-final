@@ -97,23 +97,52 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
       // 2. Envía email de notificación con todos los campos
       try {
-        const response = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderDetails: newOrder,
-            customerEmail: user.email,
-            customerName: user.displayName
-          })
+        // Importar Resend dinámicamente
+        const { Resend } = await import('resend');
+        const resend = new Resend(import.meta.env.VITE_RESEND_API_KEY);
+
+        const { data, error } = await resend.emails.send({
+          from: import.meta.env.VITE_EMAIL_FROM,
+          to: import.meta.env.VITE_EMAIL_TO,
+          subject: 'Nueva Solicitud de Canción - Tu Canción',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+              <div style="background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h1 style="margin: 0; font-size: 24px;">Nueva Solicitud de Canción</h1>
+                <p style="margin: 10px 0; font-size: 16px;">Has recibido un nuevo pedido en tu aplicación</p>
+              </div>
+              
+              <div style="background-color: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h2 style="color: #333; margin-top: 0;">Datos del Cliente</h2>
+                <p><strong>Email:</strong> ${user.email || 'No proporcionado'}</p>
+                <p><strong>Nombre:</strong> ${user.displayName || 'No proporcionado'}</p>
+                
+                <h2 style="color: #333; margin-top: 20px;">Detalles del Pedido</h2>
+                <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #2563eb;">
+                  <h3 style="color: #333; margin-top: 0;">Canción 1</h3>
+                  <p><strong>Paquete:</strong> ${newOrder.package || 'No especificado'}</p>
+                  <p><strong>Género:</strong> ${newOrder.genre || 'No especificado'}</p>
+                  <p><strong>Ánimo:</strong> ${newOrder.mood || 'No especificado'}</p>
+                  <p><strong>Ocasión:</strong> ${newOrder.occasion || 'No especificado'}</p>
+                  <p><strong>Voz:</strong> ${newOrder.singer || 'No especificado'}</p>
+                  <p><strong>Instrumentos:</strong> ${newOrder.instruments && newOrder.instruments.length > 0 ? newOrder.instruments.join(', ') : 'No especificados'}</p>
+                  <p><strong>Historia:</strong> ${newOrder.storyText || 'No especificada'}</p>
+                  <p><strong>Cliente Email:</strong> ${newOrder.customerEmail || 'No especificado'}</p>
+                  <p><strong>Cliente Nombre:</strong> ${newOrder.customerName || 'No especificado'}</p>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-radius: 5px; text-align: center;">
+                  <p style="margin: 0; color: #0066cc;"><strong>Importante:</strong> Revisa tu panel de administración para gestionar este pedido.</p>
+                </div>
+              </div>
+            </div>
+          `,
         });
-        
-        const result = await response.json();
-        if (result.success) {
-          console.log('✅ Email enviado correctamente');
+
+        if (error) {
+          console.error('❌ Error al enviar email:', error);
         } else {
-          console.error('❌ Error al enviar email:', result.error);
+          console.log('✅ Email enviado correctamente:', data);
         }
       } catch (emailError) {
         console.error('Error al enviar email:', emailError);
