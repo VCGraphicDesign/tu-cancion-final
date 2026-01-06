@@ -96,7 +96,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
       // 2. Envía email de notificación con todos los campos
       try {
-        const response = await fetch('/api/send-email', {
+        const response = await fetch('/api/send-email.cjs', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
