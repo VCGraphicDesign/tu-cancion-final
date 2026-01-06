@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "pages/api/**/*.js": {
-      "runtime": "@nodejs18.6"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
