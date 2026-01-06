@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, Zap, Gift, ChevronRight } from 'lucide-react';
 import { orderService } from '../services/firebase';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // LISTAS COMPLETAS MANTENIDAS INTACTAS
 const GÉNEROS_OPCIONES = [
