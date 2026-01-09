@@ -47,7 +47,7 @@ exports.onOrderUpdate = functions.firestore
       const previousValue = change.before.data();
 
       if (newValue.status === 'completed' && previousValue.status !== 'completed') {
-          // Enviar correo de "Canción Lista" usando SendGrid o Nodemailer
+          // Enviar correo de "Canción Lista" usando Resend
           console.log(`Enviar correo de entrega a ${newValue.userId}`);
       }
   });
