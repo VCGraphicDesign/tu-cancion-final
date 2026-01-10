@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       from: process.env.EMAIL_FROM,
       to: process.env.EMAIL_TO,
       subject: 'Nueva Solicitud de Canción - Tu Canción',
-      html: JSON.stringify(`
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
           <div style="background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
             <h1 style="margin: 0; font-size: 24px;">Nueva Solicitud de Canción</h1>
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
             </div>
           </div>
         </div>
-      `),
+      `,
     });
 
     console.log('Email enviado:', data);
