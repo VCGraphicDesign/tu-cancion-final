@@ -1,17 +1,21 @@
+// IMPORTANTE: Este archivo debe usar CommonJS, NO ES Modules
 const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 module.exports = async (req, res) => {
-  // Permitir CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // O específicamente: 'https://www.tucancion.app'
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
+  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  // Only POST allowed
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -19,53 +23,42 @@ module.exports = async (req, res) => {
   try {
     const { orderDetails, customerEmail, customerName } = req.body;
 
-    const data = await resend.emails.send({
+    // Validación básica
+    if (!customerEmail || !customerName) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields' 
+      });
+    }
+
+    const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: process.env.EMAIL_TO,
       subject: 'Nueva Solicitud de Canción - Tu Canción',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
-          <div style="background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="margin: 0; font-size: 24px;">Nueva Solicitud de Canción</h1>
-            <p style="margin: 10px 0; font-size: 16px;">Has recibido un nuevo pedido en tu aplicación</p>
-          </div>
-          
-          <div style="background-color: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h2 style="color: #333; margin-top: 0;">Datos del Cliente</h2>
-            <p><strong>Email:</strong> ${customerEmail || 'No proporcionado'}</p>
-            <p><strong>Nombre:</strong> ${customerName || 'No proporcionado'}</p>
-            
-            <h2 style="color: #333; margin-top: 20px;">Detalles del Pedido</h2>
-            <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #2563eb;">
-              <h3 style="color: #333; margin-top: 0;">Canción 1</h3>
-              <p><strong>Paquete:</strong> ${orderDetails.package || 'No especificado'}</p>
-              <p><strong>Género:</strong> ${orderDetails.genre || 'No especificado'}</p>
-              <p><strong>Ánimo:</strong> ${orderDetails.mood || 'No especificado'}</p>
-              <p><strong>Ocasión:</strong> ${orderDetails.occasion || 'No especificado'}</p>
-              <p><strong>Voz:</strong> ${orderDetails.singer || 'No especificado'}</p>
-              <p><strong>Instrumentos:</strong> ${orderDetails.instruments && orderDetails.instruments.length > 0 ? orderDetails.instruments.join(', ') : 'No especificados'}</p>
-              <p><strong>Historia:</strong> ${orderDetails.storyText || 'No especificada'}</p>
-              <p><strong>Precio:</strong> $${(orderDetails.price || 0).toLocaleString('es-CL')}</p>
-              <p><strong>Cliente Email:</strong> ${orderDetails.customerEmail || 'No especificado'}</p>
-              <p><strong>Cliente Nombre:</strong> ${orderDetails.customerName || 'No especificado'}</p>
-            </div>
-            
-            <div style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-radius: 5px; text-align: center;">
-              <p style="margin: 0; color: #0066cc;"><strong>Importante:</strong> Revisa tu panel de administración para gestionar este pedido.</p>
-            </div>
-          </div>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2563eb;">Nueva Solicitud de Canción</h2>
+          <p><strong>Cliente:</strong> ${customerName}</p>
+          <p><strong>Email:</strong> ${customerEmail}</p>
+          <h3>Detalles del Pedido:</h3>
+          <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">${JSON.stringify(orderDetails, null, 2)}</pre>
         </div>
       `,
     });
 
-    console.log('Email enviado:', data);
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(400).json({ success: false, error: error.message });
+    }
+
+    console.log('Email sent successfully:', data);
     return res.status(200).json({ success: true, id: data.id });
 
   } catch (error) {
-    console.error('Error enviando email:', error);
+    console.error('Function error:', error);
     return res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error.message || 'Internal server error' 
     });
   }
-}
+};
