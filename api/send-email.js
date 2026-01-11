@@ -94,7 +94,7 @@ module.exports = async (req, res) => {
               </div>
               <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
                 <p style="margin: 0; font-size: 24px; color: #28a745; font-weight: bold; text-align: center;">$${orderDetails?.price?.toLocaleString('es-CL') || '0'}</p>
-                <p style="margin: 5px 0 0 0; font-size: 14px; color: #6c757d; text-align: center;">Precio Total</p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #6c757d; text-align: center;">Precio Total del Paquete</p>
               </div>
             </div>
             
