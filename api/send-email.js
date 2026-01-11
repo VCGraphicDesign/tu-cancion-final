@@ -1,19 +1,13 @@
 module.exports = async (req, res) => {
   try {
-    // Test 1: Función básica funciona
     console.log('=== FUNCTION CALLED ===');
     console.log('Method:', req.method);
     console.log('Headers:', req.headers);
     
-    // Test 2: Variables de entorno existen
-    console.log('Environment check:');
-    console.log('- RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
-    console.log('- EMAIL_FROM:', process.env.EMAIL_FROM);
-    console.log('- EMAIL_TO:', process.env.EMAIL_TO);
-    
-    // Test 3: CORS
+    // CORS
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
     if (req.method === 'OPTIONS') {
@@ -21,23 +15,34 @@ module.exports = async (req, res) => {
       return res.status(200).end();
     }
     
-    // Test 4: Resend se puede importar
+    // Log environment variables (sin mostrar valores sensibles)
+    console.log('Environment check:');
+    console.log('- RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+    console.log('- EMAIL_FROM:', process.env.EMAIL_FROM);
+    console.log('- EMAIL_TO:', process.env.EMAIL_TO);
+    
+    // Try to require resend
     console.log('Attempting to load Resend...');
     const { Resend } = require('resend');
     console.log('✓ Resend loaded successfully');
     
-    // Test 5: Resend se puede instanciar
+    // Try to instantiate
     console.log('Attempting to instantiate Resend...');
     const resend = new Resend(process.env.RESEND_API_KEY);
     console.log('✓ Resend instantiated successfully');
     
-    return res.status(200).json({ 
-      success: true, 
-      message: 'All tests passed',
-      env: {
-        hasApiKey: !!process.env.RESEND_API_KEY,
-        emailFrom: process.env.EMAIL_FROM,
-        emailTo: process.env.EMAIL_TO
+    return res.status(200).json({
+      success: true,
+      message: 'Function is working!',
+      tests: {
+        functionExecuted: true,
+        resendLoaded: true,
+        resendInstantiated: true,
+        environmentVariables: {
+          hasApiKey: !!process.env.RESEND_API_KEY,
+          hasEmailFrom: !!process.env.EMAIL_FROM,
+          hasEmailTo: !!process.env.EMAIL_TO
+        }
       }
     });
     
@@ -46,8 +51,8 @@ module.exports = async (req, res) => {
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       error: error.message,
       stack: error.stack
     });
