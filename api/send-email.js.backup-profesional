@@ -1,0 +1,97 @@
+// IMPORTANTE: Este archivo debe usar CommonJS, NO ES Modules
+const { Resend } = require('resend');
+
+module.exports = async (req, res) => {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  // Only POST allowed
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  try {
+    console.log('Function invoked - POST request');
+    
+    // Import Resend
+    const { Resend } = require('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
+    console.log('Resend initialized');
+    
+    // Get data from request
+    const { orderDetails, customerEmail, customerName } = req.body;
+    
+    console.log('Processing email for:', customerEmail);
+    
+    // Validate
+    if (!customerEmail || !customerName) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: customerEmail or customerName' 
+      });
+    }
+    
+    // Send email
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM,
+      to: process.env.EMAIL_TO,
+      subject: 'Nueva Solicitud de Canción - Tu Canción',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+          <div style="background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">Nueva Solicitud de Canción</h1>
+            <p style="margin: 10px 0; font-size: 16px;">Has recibido un nuevo pedido en tu aplicación</p>
+          </div>
+          
+          <div style="background-color: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-top: 0;">Datos del Cliente</h2>
+            <p><strong>Email:</strong> ${customerEmail}</p>
+            <p><strong>Nombre:</strong> ${customerName}</p>
+            
+            <h2 style="color: #333; margin-top: 20px;">Detalles del Pedido</h2>
+            <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #2563eb;">
+              <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(orderDetails, null, 2)}</pre>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-radius: 5px; text-align: center;">
+              <p style="margin: 0; color: #0066cc;"><strong>Importante:</strong> Revisa tu panel de administración para gestionar este pedido.</p>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+    
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(400).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+    
+    console.log('Email sent successfully:', data);
+    
+    return res.status(200).json({ 
+      success: true, 
+      id: data.id,
+      message: 'Email sent successfully'
+    });
+    
+  } catch (error) {
+    console.error('Function error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: 'Check Vercel logs for more information'
+    });
+  }
+};
