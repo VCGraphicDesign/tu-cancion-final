@@ -100,46 +100,14 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
         createdOrders.push(newOrder);
       }
 
-      try {
-        const response = await fetch('https://tucancion.app/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            packageInfo: {
-              name: selectedPackage?.name,
-              totalPrice: selectedPackage?.price,
-              depositAmount: (selectedPackage?.price || 0) / 2,
-              remainingAmount: (selectedPackage?.price || 0) / 2
-            },
-            songs: createdOrders.map((order, index) => ({
-              songNumber: index + 1,
-              genre: order.request?.genre,
-              mood: order.request?.mood,
-              occasion: order.request?.occasion,
-              singer: order.request?.singer,
-              instruments: order.request?.instruments,
-              story: order.request?.storyText,
-              orderId: order.id
-            })),
-            customerEmail: user.email,
-            customerName: user.displayName,
-            orderDate: new Date().toISOString()
-          })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-          console.log('✅ Email enviado correctamente');
-        } else {
-          console.error('❌ Error al enviar email:', result.error);
-        }
-      } catch (emailError) {
-        console.error('Error al enviar email:', emailError);
-      }
-
-      navigate('/checkout', { state: { orderId: createdOrders[0].id } });
+      navigate('/checkout', { 
+  state: { 
+    orderId: createdOrders[0].id,
+    selectedPackage: selectedPackage,
+    songsData: songsData,
+    user: user
+  } 
+});
 
     } catch (error) {
       console.error("Error al crear el pedido:", error);
