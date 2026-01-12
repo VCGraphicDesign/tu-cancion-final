@@ -81,56 +81,53 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
       return;
     }
     try {
-      // 1. Determinar precio y datos del paquete
-      let packagePrice = 30000;
-      let packageName = 'single';
+      // 1. Determinar cuántas canciones guardar según el paquete
+      const songsToProcess = selectedPackage?.id === '1' ? 1 : selectedPackage?.id === '2' ? 2 : 3;
+      const createdOrders = [];
       
-      if (selectedPackage?.id === '2') {
-        packagePrice = 45000;
-        packageName = 'duo';
-      } else if (selectedPackage?.id === '3') {
-        packagePrice = 60000;
-        packageName = 'trio';
-      }
-      
-      // 2. Crear UN SOLO pedido con todas las canciones
-      const newOrder = await orderService.create(user.uid, { 
-        package: packageName as 'single' | 'duo' | 'trio',
-        price: packagePrice,
-        depositAmount: packagePrice / 2,
-        songs: songsData, // Array con todas las canciones
-        customerEmail: user.email,
-        customerName: user.displayName,
-        status: 'pending_payment',
-        createdAt: Date.now()
-      });
-      
-      // 3. Enviar UN SOLO email con todas las canciones
-      try {
-        const response = await fetch('https://tucancion.app/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderDetails: newOrder,
-            customerEmail: user.email,
-            customerName: user.displayName
-          })
+      // 2. Crear un pedido por cada canción
+      for (let i = 0; i < songsToProcess && i < songsData.length; i++) {
+        const newOrder = await orderService.create(user.uid, { 
+          package: selectedPackage?.id === '1' ? 'single' : selectedPackage?.id === '2' ? 'duo' : 'trio',
+          genre: songsData[i]?.genre || '',
+          mood: songsData[i]?.mood || '',
+          occasion: songsData[i]?.occasion || '',
+          singer: songsData[i]?.singer || '',
+          instruments: songsData[i]?.instruments || [],
+          storyText: songsData[i]?.story || '',
+          customerEmail: user.email,
+          customerName: user.displayName
         });
         
-        const result = await response.json();
-        if (result.success) {
-          console.log('✅ Email enviado correctamente');
-        } else {
-          console.error('❌ Error al enviar email:', result.error);
+        createdOrders.push(newOrder);
+        
+        // 3. Enviar email por cada canción
+        try {
+          const response = await fetch('https://tucancion.app/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderDetails: newOrder,
+              customerEmail: user.email,
+              customerName: user.displayName
+            })
+          });
+          
+          const result = await response.json();
+          if (result.success) {
+            console.log(`✅ Email ${i + 1} enviado correctamente`);
+          } else {
+            console.error(`❌ Error al enviar email ${i + 1}:`, result.error);
+          }
+        } catch (emailError) {
+          console.error(`Error al enviar email ${i + 1}:`, emailError);
         }
-      } catch (emailError) {
-        console.error('Error al enviar email:', emailError);
       }
 
       // 3. Navega a la página de pago, pasando el ID del nuevo pedido
-      navigate('/checkout', { state: { orderId: newOrder.id } });
+      navigate('/checkout', { state: { orderId: createdOrders[0].id } });
 
     } catch (error) {
       console.error("Error al crear el pedido:", error);
