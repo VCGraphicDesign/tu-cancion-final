@@ -31,12 +31,56 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!selectedMethod) return;
     setIsProcessing(true);
-    setTimeout(() => {
+    
+    // Obtener datos del pedido desde el estado de navegación
+    const { orderId, selectedPackage, songsData, user } = location.state || {};
+    
+    setTimeout(async () => {
       setIsProcessing(false);
       setIsSuccess(true);
+      
+      // Enviar correos después del pago exitoso
+      try {
+        const response = await fetch('https://tucancion.app/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            packageInfo: {
+              name: selectedPackage?.name || 'Paquete',
+              totalPrice: selectedPackage?.price || 0,
+              depositAmount: (selectedPackage?.price || 0) / 2,
+              remainingAmount: (selectedPackage?.price || 0) / 2
+            },
+            songs: songsData?.map((song, index) => ({
+              songNumber: index + 1,
+              genre: song?.genre || '',
+              mood: song?.mood || '',
+              occasion: song?.occasion || '',
+              singer: song?.singer || '',
+              instruments: song?.instruments || [],
+              story: song?.story || '',
+              orderId: orderId
+            })) || [],
+            customerEmail: user?.email || '',
+            customerName: user?.displayName || '',
+            orderDate: new Date().toISOString()
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ Emails enviados correctamente');
+        } else {
+          console.error('❌ Error al enviar emails:', result.error);
+        }
+      } catch (emailError) {
+        console.error('Error al enviar emails:', emailError);
+      }
     }, 2000);
   };
 
