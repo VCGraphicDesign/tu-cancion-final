@@ -27,23 +27,27 @@ module.exports = async (req, res) => {
     
     console.log('Resend initialized');
     
-    // Get data from request - NUEVA ESTRUCTURA
-    const { packageInfo, songs, customerEmail, customerName, orderDate, orderId } = req.body;
+    // Get data from request - SOLO orderId para seguridad
+    const { orderId } = req.body;
     
-    console.log('Processing email for:', customerEmail);
-    
-    // Importar servicio de Firebase para obtener pedido real
+    // Importar servicio de Firebase para obtener pedido completo
     const orderService = require('../services/firebase');
     const pedidoReal = await orderService.getById(orderId);
-    const emailReal = pedidoReal.customerEmail;
+
+    // Extraer todos los datos del pedido real
+    const packageInfo = pedidoReal.packageInfo;
+    const songs = pedidoReal.songs;
+    const customerEmail = pedidoReal.customerEmail;
+    const customerName = pedidoReal.customerName;
+    const orderDate = pedidoReal.createdAt;
     
-    console.log('Using real email from Firebase:', emailReal);
+    console.log('Using real email from Firebase:', customerEmail);
     
     // Validate
-    if (!customerEmail || !customerName) {
+    if (!orderId || !pedidoReal) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields: customerEmail or customerName' 
+        error: 'Missing required fields: orderId or invalid order' 
       });
     }
     
