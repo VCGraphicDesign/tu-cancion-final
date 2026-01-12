@@ -165,6 +165,31 @@ module.exports = async (req, res) => {
     
     console.log('Email sent successfully:', data);
     
+    // Email para cliente usando template de Resend
+    try {
+      const { data: customerData, error: customerError } = await resend.emails.send({
+        from: process.env.EMAIL_FROM,
+        to: customerEmail,
+        template_id: '0a18b9b4-699a-425f-94fc-73f0c558979c',
+        variables: {
+          customer_name: customerName,
+          deposit_amount: packageInfo?.depositAmount?.toLocaleString('es-CL'),
+          package_name: packageInfo?.name,
+          total_amount: packageInfo?.totalPrice?.toLocaleString('es-CL'),
+          remaining_amount: packageInfo?.remainingAmount?.toLocaleString('es-CL'),
+          current_date: new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })
+        }
+      });
+      
+      if (customerError) {
+        console.error('Error sending customer email:', customerError);
+      } else {
+        console.log('✅ Customer email sent successfully:', customerData);
+      }
+    } catch (customerEmailError) {
+      console.error('Customer email error:', customerEmailError);
+    }
+    
     return res.status(200).json({ 
       success: true, 
       id: data.id,
