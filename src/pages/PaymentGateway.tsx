@@ -71,7 +71,8 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
             })) || [],
             customerEmail: customerEmail || '',
             customerName: customerName || '',
-            orderDate: new Date().toISOString()
+            orderDate: new Date().toISOString(),
+            orderId: orderId
           })
         });
         
