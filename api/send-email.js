@@ -72,30 +72,32 @@ module.exports = async (req, res) => {
             <div style="padding: 25px; border-bottom: 1px solid #e9ecef;">
               <div style="display: flex; align-items: center; margin-bottom: 15px;">
                 <div style="font-size: 24px; margin-right: 12px;">🎸</div>
-                <h2 style="margin: 0; color: #2c3e50; font-size: 20px;">Detalles del Pedido</h2>
+                <h2 style="margin: 0; color: #2c3e50; font-size: 20px;">Detalles del Paquete</h2>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
-                  <p style="margin: 0; font-size: 14px; color: #1976d2; font-weight: bold;">PAQUETE</p>
-                  <p style="margin: 5px 0 0 0; font-size: 18px; color: #2c3e50; font-weight: bold;">${orderDetails?.request?.package || 'N/A'}</p>
-                </div>
-                <div style="background-color: #f3e5f5; padding: 15px; border-radius: 8px; text-align: center;">
-                  <p style="margin: 0; font-size: 14px; color: #7b1fa2; font-weight: bold;">GÉNERO</p>
-                  <p style="margin: 5px 0 0 0; font-size: 18px; color: #2c3e50; font-weight: bold;">${orderDetails?.request?.genre || 'N/A'}</p>
-                </div>
-                <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
-                  <p style="margin: 0; font-size: 14px; color: #f57c00; font-weight: bold;">OCASIÓN</p>
-                  <p style="margin: 5px 0 0 0; font-size: 18px; color: #2c3e50; font-weight: bold;">${orderDetails?.request?.occasion || 'N/A'}</p>
-                </div>
-                <div style="background-color: #fce4ec; padding: 15px; border-radius: 8px; text-align: center;">
-                  <p style="margin: 0; font-size: 14px; color: #c2185b; font-weight: bold;">ÁNIMO</p>
-                  <p style="margin: 5px 0 0 0; font-size: 18px; color: #2c3e50; font-weight: bold;">${orderDetails?.request?.mood || 'N/A'}</p>
-                </div>
+              <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                <p style="margin: 0; font-size: 18px; color: #1976d2; font-weight: bold;">PAQUETE ${orderDetails?.package?.toUpperCase() || 'SINGLE'}</p>
+                <p style="margin: 5px 0 0 0; font-size: 24px; color: #2c3e50; font-weight: bold;">$${orderDetails?.price?.toLocaleString('es-CL') || '0'}</p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #6c757d;">Precio Total del Paquete</p>
               </div>
-              <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
-                <p style="margin: 0; font-size: 24px; color: #28a745; font-weight: bold; text-align: center;">$${orderDetails?.price?.toLocaleString('es-CL') || '0'}</p>
-                <p style="margin: 5px 0 0 0; font-size: 14px; color: #6c757d; text-align: center;">Precio Total del Paquete</p>
-              </div>
+              
+              <!-- MOSTRAR CADA CANCIÓN -->
+              ${(orderDetails?.songs || []).map((song, index) => `
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2563eb;">
+                  <h4 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 16px; font-weight: bold;">Canción ${index + 1}</h4>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                    <div><strong>Género:</strong> ${song.genre || 'N/A'}</div>
+                    <div><strong>Ánimo:</strong> ${song.mood || 'N/A'}</div>
+                    <div><strong>Ocasión:</strong> ${song.occasion || 'N/A'}</div>
+                    <div><strong>Voz:</strong> ${song.singer || 'N/A'}</div>
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <strong>Instrumentos:</strong> ${(song.instruments || []).join(', ') || 'N/A'}
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <strong>Historia:</strong> ${song.story || 'No proporcionada'}
+                  </div>
+                </div>
+              `).join('')}
             </div>
             
             <!-- SECCIÓN INSTRUMENTOS -->
