@@ -35,8 +35,8 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
     if (!selectedMethod) return;
     setIsProcessing(true);
     
-    // Obtener datos del pedido desde el estado de navegación
-    const { orderId, selectedPackage, songsData, user } = location.state || {};
+    // Obtener datos simples del estado de navegación
+    const { orderId, packageName, packagePrice, packageSongs, customerEmail, customerName, songsData } = location.state || {};
     
     setTimeout(async () => {
       setIsProcessing(false);
@@ -44,18 +44,21 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
       
       // Enviar correos después del pago exitoso
       try {
+        // Reconstruir objeto completo para el email
+        const packageInfo = {
+          name: packageName,
+          totalPrice: packagePrice,
+          depositAmount: packagePrice / 2,
+          remainingAmount: packagePrice / 2
+        };
+        
         const response = await fetch('https://tucancion.app/api/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            packageInfo: {
-              name: selectedPackage?.name || 'Paquete',
-              totalPrice: selectedPackage?.price || 0,
-              depositAmount: (selectedPackage?.price || 0) / 2,
-              remainingAmount: (selectedPackage?.price || 0) / 2
-            },
+            packageInfo: packageInfo,
             songs: songsData?.map((song, index) => ({
               songNumber: index + 1,
               genre: song?.genre || '',
@@ -66,8 +69,8 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
               story: song?.story || '',
               orderId: orderId
             })) || [],
-            customerEmail: user?.email || '',
-            customerName: user?.displayName || '',
+            customerEmail: customerEmail || '',
+            customerName: customerName || '',
             orderDate: new Date().toISOString()
           })
         });
