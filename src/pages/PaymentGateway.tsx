@@ -36,7 +36,7 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
     setIsProcessing(true);
     
     // Obtener datos simples del estado de navegación
-    const { orderId, packageName, packagePrice, packageSongs, customerEmail, customerName, songsData } = location.state || {};
+    const { orderId } = location.state || {};
     
     setTimeout(async () => {
       setIsProcessing(false);
@@ -44,34 +44,12 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
       
       // Enviar correos después del pago exitoso
       try {
-        // Reconstruir objeto completo para el email
-        const packageInfo = {
-          name: packageName,
-          totalPrice: packagePrice,
-          depositAmount: packagePrice / 2,
-          remainingAmount: packagePrice / 2
-        };
-        
         const response = await fetch('https://tucancion.app/api/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            packageInfo: packageInfo,
-            songs: songsData?.map((song, index) => ({
-              songNumber: index + 1,
-              genre: song?.genre || '',
-              mood: song?.mood || '',
-              occasion: song?.occasion || '',
-              singer: song?.singer || '',
-              instruments: song?.instruments || [],
-              story: song?.story || '',
-              orderId: orderId
-            })) || [],
-            customerEmail: customerEmail || '',
-            customerName: customerName || '',
-            orderDate: new Date().toISOString(),
             orderId: orderId
           })
         });
