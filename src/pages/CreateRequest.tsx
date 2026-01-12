@@ -42,7 +42,7 @@ interface CreateRequestProps {
 
 const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const [step, setStep] = useState(1);
-  const [subStep, setSubStep] = useState(1); // 1: Campos, 2: Historia
+  const [subStep, setSubStep] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [songsData, setSongsData] = useState<any[]>([]);
@@ -74,18 +74,16 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
     updateCurrentSong('instruments', newInsts);
   };
 
-  // NUEVO: Función que se ejecuta al hacer clic en "Ir al Pago"
   const handleGoToPayment = async () => {
     if (!user) {
       alert("Debes estar logueado para continuar.");
       return;
     }
+    
     try {
-      // 1. Determinar cuántas canciones guardar según el paquete
       const songsToProcess = selectedPackage?.id === '1' ? 1 : selectedPackage?.id === '2' ? 2 : 3;
       const createdOrders = [];
       
-      // 2. Crear un pedido por cada canción
       for (let i = 0; i < songsToProcess && i < songsData.length; i++) {
         const newOrder = await orderService.create(user.uid, { 
           package: selectedPackage?.id === '1' ? 'single' : selectedPackage?.id === '2' ? 'duo' : 'trio',
@@ -100,33 +98,47 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
         });
         
         createdOrders.push(newOrder);
-        
-        // 3. Enviar email por cada canción
-        try {
-          const response = await fetch('https://tucancion.app/api/send-email', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              orderDetails: newOrder,
-              customerEmail: user.email,
-              customerName: user.displayName
-            })
-          });
-          
-          const result = await response.json();
-          if (result.success) {
-            console.log(`✅ Email ${i + 1} enviado correctamente`);
-          } else {
-            console.error(`❌ Error al enviar email ${i + 1}:`, result.error);
-          }
-        } catch (emailError) {
-          console.error(`Error al enviar email ${i + 1}:`, emailError);
-        }
       }
 
-      // 3. Navega a la página de pago, pasando el ID del nuevo pedido
+      try {
+        const response = await fetch('https://tucancion.app/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            packageInfo: {
+              name: selectedPackage?.name,
+              totalPrice: selectedPackage?.price,
+              depositAmount: (selectedPackage?.price || 0) / 2,
+              remainingAmount: (selectedPackage?.price || 0) / 2
+            },
+            songs: createdOrders.map((order, index) => ({
+              songNumber: index + 1,
+              genre: order.request?.genre,
+              mood: order.request?.mood,
+              occasion: order.request?.occasion,
+              singer: order.request?.singer,
+              instruments: order.request?.instruments,
+              story: order.request?.storyText,
+              orderId: order.id
+            })),
+            customerEmail: user.email,
+            customerName: user.displayName,
+            orderDate: new Date().toISOString()
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ Email enviado correctamente');
+        } else {
+          console.error('❌ Error al enviar email:', result.error);
+        }
+      } catch (emailError) {
+        console.error('Error al enviar email:', emailError);
+      }
+
       navigate('/checkout', { state: { orderId: createdOrders[0].id } });
 
     } catch (error) {
@@ -139,7 +151,6 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
     <div className="min-h-screen bg-[#0a0a0a] text-white pt-10 pb-20 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
         
-        {/* PASO 1: SELECCIÓN DE PROMOCIÓN */}
         {step === 1 && (
           <div className="text-center animate-in fade-in">
             <h1 className="text-3xl font-serif mb-8 italic">Plan</h1>
@@ -160,7 +171,6 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
           </div>
         )}
 
-        {/* PASO 2: FORMULARIO DINÁMICO (ESTILO E HISTORIA) */}
         {step === 2 && (
           <div className="animate-in fade-in max-w-3xl mx-auto">
             <div className="text-center mb-10">
@@ -170,7 +180,6 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
               </p>
             </div>
             
-            {/* SUB-PASO 1: CAMPOS OBLIGATORIOS */}
             {subStep === 1 && (
               <div className="animate-in slide-in-from-left duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -232,7 +241,6 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
               </div>
             )}
 
-            {/* SUB-PASO 2: CUADRO DE TEXTO (HISTORIA) */}
             {subStep === 2 && (
               <div className="animate-in slide-in-from-right duration-300">
                 <div className="mb-10">
@@ -269,7 +277,6 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
           </div>
         )}
 
-        {/* PASO 3: PAGO DEL 50% */}
         {step === 3 && (
           <div className="max-w-md mx-auto bg-[#1a1a1a] border border-gray-800 rounded-3xl p-8 text-center animate-in zoom-in">
             <h2 className="text-xl font-bold mb-6">Resumen y Reserva</h2>
