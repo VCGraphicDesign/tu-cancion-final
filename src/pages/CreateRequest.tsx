@@ -100,14 +100,25 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
         createdOrders.push(newOrder);
       }
 
-      navigate('/checkout', { 
-  state: { 
-    orderId: createdOrders[0].id,
-    selectedPackage: selectedPackage,
-    songsData: songsData,
-    user: user
-  } 
-});
+      // Extraer solo datos JSON puros para evitar DataCloneError
+      const pedidoData = {
+        orderId: createdOrders[0].id,
+        packageName: selectedPackage?.name || '',
+        packagePrice: selectedPackage?.price || 0,
+        packageSongs: selectedPackage?.songs || 0,
+        customerEmail: user?.email || '',
+        customerName: user?.displayName || '',
+        songsData: songsData.map(song => ({
+          genre: song?.genre || '',
+          mood: song?.mood || '',
+          occasion: song?.occasion || '',
+          singer: song?.singer || '',
+          instruments: song?.instruments || [],
+          story: song?.story || ''
+        }))
+      };
+
+      navigate('/checkout', { state: pedidoData });
 
     } catch (error) {
       console.error("Error al crear el pedido:", error);
