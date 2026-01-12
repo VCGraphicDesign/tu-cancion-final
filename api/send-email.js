@@ -28,9 +28,16 @@ module.exports = async (req, res) => {
     console.log('Resend initialized');
     
     // Get data from request - NUEVA ESTRUCTURA
-    const { packageInfo, songs, customerEmail, customerName, orderDate } = req.body;
+    const { packageInfo, songs, customerEmail, customerName, orderDate, orderId } = req.body;
     
     console.log('Processing email for:', customerEmail);
+    
+    // Importar servicio de Firebase para obtener pedido real
+    const orderService = require('../services/firebase');
+    const pedidoReal = await orderService.getById(orderId);
+    const emailReal = pedidoReal.customerEmail;
+    
+    console.log('Using real email from Firebase:', emailReal);
     
     // Validate
     if (!customerEmail || !customerName) {
@@ -314,7 +321,7 @@ module.exports = async (req, res) => {
       
       const { data: customerData, error: customerError } = await resend.emails.send({
         from: process.env.EMAIL_FROM,
-        to: customerEmail,
+        to: emailReal,
         subject: '¡Gracias por tu confianza - Tu Canción',
         html: htmlCliente
       });
