@@ -2,56 +2,84 @@
 const { Resend } = require('resend');
 
 module.exports = async (req, res) => {
-  // CORS headers
+  // ======================
+  // CORS HEADERS
+  // ======================
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  // Handle preflight
+
+  // Preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  
+
   // Only POST allowed
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  
+
   try {
-    console.log('Function invoked - POST request');
-    
-    // Import Resend
-    const { Resend } = require('resend');
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    
-    console.log('Resend initialized');
-    
-    // Get data from request - SOLO orderId para seguridad
+    console.log('📩 SendEmail function invoked');
+
+    // ======================
+    // VALIDACIÓN BÁSICA
+    // ======================
     const { orderId } = req.body;
-    
-    // Importar servicio de Firebase para obtener pedido completo
+
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required field: orderId',
+      });
+    }
+
+    // ======================
+    // OBTENER PEDIDO REAL DESDE FIREBASE
+    // ======================
     const orderService = require('../services/firebase');
     const pedidoReal = await orderService.getById(orderId);
 
-    // Extraer todos los datos del pedido real
-    const packageInfo = pedidoReal.packageInfo;
-    const songs = pedidoReal.songs;
-    const customerEmail = pedidoReal.customerEmail;
-    const customerName = pedidoReal.customerName;
-    const orderDate = pedidoReal.createdAt;
-    
-    console.log('Using real email from Firebase:', customerEmail);
-    
-    // Validate
-    if (!orderId || !pedidoReal) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields: orderId or invalid order' 
+    if (!pedidoReal) {
+      return res.status(404).json({
+        success: false,
+        error: 'Order not found',
       });
     }
-    
-    // Send email
+
+    const {
+      packageInfo,
+      songs,
+      customerEmail,
+      customerName,
+      createdAt,
+    } = pedidoReal;
+
+    // Validar estructura mínima del pedido
+    if (
+      !packageInfo ||
+      !Array.isArray(songs) ||
+      songs.length === 0 ||
+      !customerEmail ||
+      !customerName
+    ) {
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid order structure',
+      });
+    }
+
+    console.log('✅ Pedido validado desde Firebase:', orderId);
+
+    // ======================
+    // INICIALIZAR RESEND
+    // ======================
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    // ======================
+    // EMAIL INTERNO (ADMIN) - CON DISEÑO ORIGINAL
+    // ======================
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: process.env.EMAIL_TO,
@@ -63,7 +91,7 @@ module.exports = async (req, res) => {
             <div style="font-size: 36px; margin-bottom: 10px;">🎵</div>
             <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Tu Canción</h1>
             <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">¡Nuevo Pedido Recibido!</p>
-            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.7;">${new Date(orderDate).toLocaleString('es-CL', { timeZone: 'America/Santiago' })}</p>
+            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.7;">${new Date(createdAt).toLocaleString('es-CL', { timeZone: 'America/Santiago' })}</p>
           </div>
           
           <!-- CONTENIDO PRINCIPAL -->
@@ -165,18 +193,20 @@ module.exports = async (req, res) => {
         </div>
       `,
     });
-    
+
     if (error) {
-      console.error('Resend error:', error);
-      return res.status(400).json({ 
-        success: false, 
-        error: error.message 
+      console.error('❌ Error enviando email interno:', error);
+      return res.status(400).json({
+        success: false,
+        error: error.message,
       });
     }
-    
-    console.log('Email sent successfully:', data);
-    
-    // Email para cliente con HTML dinámico
+
+    console.log('✅ Email interno enviado');
+
+    // ======================
+    // EMAIL AL CLIENTE - CON DISEÑO ORIGINAL
+    // ======================
     try {
       // Determinar mensaje según cantidad de canciones
       let mensajeCanciones;
@@ -322,35 +352,36 @@ module.exports = async (req, res) => {
         </body>
         </html>
       `;
-      
-      const { data: customerData, error: customerError } = await resend.emails.send({
+
+      const { error: customerError } = await resend.emails.send({
         from: process.env.EMAIL_FROM,
-        to: emailReal,
+        to: customerEmail,
         subject: '¡Gracias por tu confianza - Tu Canción',
-        html: htmlCliente
+        html: htmlCliente,
       });
-      
+
       if (customerError) {
-        console.error('Error sending customer email:', customerError);
+        console.error('⚠ Error enviando email al cliente:', customerError);
       } else {
-        console.log('✅ Customer email sent successfully:', customerData);
+        console.log('✅ Email enviado al cliente');
       }
     } catch (customerEmailError) {
       console.error('Customer email error:', customerEmailError);
     }
-    
-    return res.status(200).json({ 
-      success: true, 
+
+    // ======================
+    // RESPUESTA FINAL
+    // ======================
+    return res.status(200).json({
+      success: true,
       id: data.id,
-      message: 'Email sent successfully'
+      message: 'Emails sent successfully',
     });
-    
-  } catch (error) {
-    console.error('Function error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      details: 'Check Vercel logs for more information'
+  } catch (err) {
+    console.error('🔥 SendEmail fatal error:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message,
     });
   }
 };
