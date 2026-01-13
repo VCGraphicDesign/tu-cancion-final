@@ -21,7 +21,7 @@ module.exports = {
   db,
   getById: async (orderId) => {
     try {
-      const doc = await db.collection('pedidos').doc(orderId).get();
+      const doc = await db.collection('orders').doc(orderId).get();
       if (!doc.exists) {
         return null;
       }
