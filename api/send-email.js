@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
     // ======================
     // OBTENER PEDIDO REAL DESDE FIREBASE
     // ======================
-    const orderService = require('../services/firebase');
+    const orderService = require('./services/firebase');
     const pedidoReal = await orderService.getById(orderId);
 
     if (!pedidoReal) {
