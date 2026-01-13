@@ -49,18 +49,33 @@ module.exports = async (req, res) => {
     }
 
     const {
-      package: packageType,
-      genre,
-      mood,
-      occasion,
-      singer,
-      instruments,
-      storyText,
+      request,
       customerEmail,
       customerName,
       createdAt,
       status
     } = pedidoReal;
+
+    // Extraer package desde request
+    const packageType = request?.package;
+
+    // Crear variables para el template
+    const songs = [{
+      songNumber: 1,
+      genre: request?.genre || 'N/A',
+      mood: request?.mood || 'N/A',
+      occasion: request?.occasion || 'N/A',
+      singer: request?.singer || 'N/A',
+      instruments: request?.instruments || [],
+      story: request?.storyText || 'No proporcionada'
+    }];
+
+    const packageInfo = {
+      name: packageType === 'single' ? '1 Canción' : packageType === 'duo' ? '2 Canciones' : '3 Canciones',
+      totalPrice: packageType === 'single' ? 30000 : packageType === 'duo' ? 45000 : 60000,
+      depositAmount: packageType === 'single' ? 15000 : packageType === 'duo' ? 22500 : 30000,
+      remainingAmount: packageType === 'single' ? 15000 : packageType === 'duo' ? 22500 : 30000
+    };
 
     // Validar estructura mínima del pedido
     if (
