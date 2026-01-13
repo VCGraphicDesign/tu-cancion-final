@@ -59,16 +59,21 @@ module.exports = async (req, res) => {
     // Extraer package desde request
     const packageType = request?.package;
 
-    // Crear variables para el template
-    const songs = [{
-      songNumber: 1,
-      genre: request?.genre || 'N/A',
-      mood: request?.mood || 'N/A',
-      occasion: request?.occasion || 'N/A',
-      singer: request?.singer || 'N/A',
-      instruments: request?.instruments || [],
-      story: request?.storyText || 'No proporcionada'
-    }];
+    // Crear variables para el template según el paquete
+    const songs = [];
+    const numSongs = packageType === 'single' ? 1 : packageType === 'duo' ? 2 : 3;
+
+    for (let i = 0; i < numSongs; i++) {
+      songs.push({
+        songNumber: i + 1,
+        genre: request?.genre || 'N/A',
+        mood: request?.mood || 'N/A',
+        occasion: request?.occasion || 'N/A',
+        singer: request?.singer || 'N/A',
+        instruments: request?.instruments || [],
+        story: request?.storyText || 'No proporcionada'
+      });
+    }
 
     const packageInfo = {
       name: packageType === 'single' ? '1 Canción' : packageType === 'duo' ? '2 Canciones' : '3 Canciones',
