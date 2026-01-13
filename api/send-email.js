@@ -49,20 +49,25 @@ module.exports = async (req, res) => {
     }
 
     const {
-      packageInfo,
-      songs,
+      package: packageType,
+      genre,
+      mood,
+      occasion,
+      singer,
+      instruments,
+      storyText,
       customerEmail,
       customerName,
       createdAt,
+      status
     } = pedidoReal;
 
     // Validar estructura mínima del pedido
     if (
-      !packageInfo ||
-      !Array.isArray(songs) ||
-      songs.length === 0 ||
+      !packageType ||
       !customerEmail ||
-      !customerName
+      !customerName ||
+      !createdAt
     ) {
       return res.status(500).json({
         success: false,
