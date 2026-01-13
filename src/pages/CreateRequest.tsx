@@ -102,7 +102,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
       // Extraer solo datos JSON puros para evitar DataCloneError
       const pedidoData = {
-        orderId: createdOrders[0].id,
+        orderId: createdOrders[0],
         packageName: selectedPackage?.name || '',
         packagePrice: selectedPackage?.price || 0,
         packageSongs: selectedPackage?.songs || 0,
