@@ -81,28 +81,24 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
     }
     
     try {
-      const songsToProcess = selectedPackage?.id === '1' ? 1 : selectedPackage?.id === '2' ? 2 : 3;
-      const createdOrders = [];
-      
-      for (let i = 0; i < songsToProcess && i < songsData.length; i++) {
-        const newOrder = await orderService.create(user.uid, { 
-          package: selectedPackage?.id === '1' ? 'single' : selectedPackage?.id === '2' ? 'duo' : 'trio',
-          genre: songsData[i]?.genre || '',
-          mood: songsData[i]?.mood || '',
-          occasion: songsData[i]?.occasion || '',
-          singer: songsData[i]?.singer || '',
-          instruments: songsData[i]?.instruments || [],
-          storyText: songsData[i]?.story || '',
-          customerEmail: user.email,
-          customerName: user.displayName
-        });
-        
-        createdOrders.push(newOrder);
-      }
+      // Crear UN solo pedido con todas las canciones
+      const newOrder = await orderService.create(user.uid, { 
+        package: selectedPackage?.id === '1' ? 'single' : selectedPackage?.id === '2' ? 'duo' : 'trio',
+        songsData: songsData.map(song => ({
+          genre: song?.genre || '',
+          mood: song?.mood || '',
+          occasion: song?.occasion || '',
+          singer: song?.singer || '',
+          instruments: song?.instruments || [],
+          story: song?.story || ''
+        })),
+        customerEmail: user.email,
+        customerName: user.displayName
+      });
 
       // Extraer solo datos JSON puros para evitar DataCloneError
       const pedidoData = {
-        orderId: createdOrders[0].id,
+        orderId: newOrder.id,
         packageName: selectedPackage?.name || '',
         packagePrice: selectedPackage?.price || 0,
         packageSongs: selectedPackage?.songs || 0,
