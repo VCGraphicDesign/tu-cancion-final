@@ -61,18 +61,34 @@ module.exports = async (req, res) => {
 
     // Crear variables para el template según el paquete
     const songs = [];
-    const numSongs = packageType === 'single' ? 1 : packageType === 'duo' ? 2 : 3;
-
-    for (let i = 0; i < numSongs; i++) {
-      songs.push({
-        songNumber: i + 1,
-        genre: request?.genre || 'N/A',
-        mood: request?.mood || 'N/A',
-        occasion: request?.occasion || 'N/A',
-        singer: request?.singer || 'N/A',
-        instruments: request?.instruments || [],
-        story: request?.storyText || 'No proporcionada'
+    
+    // Usar los datos reales de cada canción si están disponibles
+    if (pedidoReal.songsData && Array.isArray(pedidoReal.songsData)) {
+      pedidoReal.songsData.forEach((songData, index) => {
+        songs.push({
+          songNumber: index + 1,
+          genre: songData.genre || 'N/A',
+          mood: songData.mood || 'N/A',
+          occasion: songData.occasion || 'N/A',
+          singer: songData.singer || 'N/A',
+          instruments: songData.instruments || [],
+          story: songData.story || 'No proporcionada'
+        });
       });
+    } else {
+      // Fallback: usar datos del request si songsData no está disponible
+      const numSongs = packageType === 'single' ? 1 : packageType === 'duo' ? 2 : 3;
+      for (let i = 0; i < numSongs; i++) {
+        songs.push({
+          songNumber: i + 1,
+          genre: request?.genre || 'N/A',
+          mood: request?.mood || 'N/A',
+          occasion: request?.occasion || 'N/A',
+          singer: request?.singer || 'N/A',
+          instruments: request?.instruments || [],
+          story: request?.storyText || 'No proporcionada'
+        });
+      }
     }
 
     const packageInfo = {
