@@ -23,7 +23,15 @@ export interface Order {
   customerEmail?: string;
   customerName?: string;
   status: 'pending_payment' | 'deposit_paid' | 'in_progress' | 'preview_ready' | 'completed';
-  request: SongRequest;
+  package: 'single' | 'duo' | 'trio';
+  songsData: Array<{
+    genre: string;
+    mood: string;
+    occasion: string;
+    singer: string;
+    instruments: string[];
+    story: string;
+  }>;
   price: number;
   depositAmount: number;
   createdAt: number;
