@@ -49,22 +49,22 @@ module.exports = async (req, res) => {
     }
 
     const {
-      request,
       customerEmail,
       customerName,
       createdAt,
       status
     } = pedidoReal;
 
-    // Extraer package desde request
-    const packageType = request?.package;
+    // Extraer package y songsData del nivel principal del pedido
+    const packageType = pedidoReal.package || pedidoReal.request?.package;
+    const songsDataArray = pedidoReal.songsData || [];
 
     // Crear variables para el template según el paquete
     const songs = [];
     
     // Usar los datos reales de cada canción si están disponibles
-    if (pedidoReal.songsData && Array.isArray(pedidoReal.songsData)) {
-      pedidoReal.songsData.forEach((songData, index) => {
+    if (songsDataArray && Array.isArray(songsDataArray)) {
+      songsDataArray.forEach((songData, index) => {
         songs.push({
           songNumber: index + 1,
           genre: songData.genre || 'N/A',
@@ -81,12 +81,12 @@ module.exports = async (req, res) => {
       for (let i = 0; i < numSongs; i++) {
         songs.push({
           songNumber: i + 1,
-          genre: request?.genre || 'N/A',
-          mood: request?.mood || 'N/A',
-          occasion: request?.occasion || 'N/A',
-          singer: request?.singer || 'N/A',
-          instruments: request?.instruments || [],
-          story: request?.storyText || 'No proporcionada'
+          genre: pedidoReal.request?.genre || 'N/A',
+          mood: pedidoReal.request?.mood || 'N/A',
+          occasion: pedidoReal.request?.occasion || 'N/A',
+          singer: pedidoReal.request?.singer || 'N/A',
+          instruments: pedidoReal.request?.instruments || [],
+          story: pedidoReal.request?.storyText || 'No proporcionada'
         });
       }
     }
