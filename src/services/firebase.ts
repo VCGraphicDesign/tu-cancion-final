@@ -90,14 +90,15 @@ export const authService = {
 };
 
 export const orderService = {
-  create: async (userId: string, request: SongRequest & { customerEmail?: string; customerName?: string }): Promise<Order> => {
+  create: async (userId: string, request: SongRequest & { customerEmail?: string; customerName?: string; songsData?: any[] }): Promise<Order> => {
     const estimatedPrice = 30000; 
     const newOrderData = {
       userId,
       customerEmail: request.customerEmail,
       customerName: request.customerName,
       status: 'pending_payment',
-      request,
+      package: request.package,
+      songsData: request.songsData || [],
       price: estimatedPrice,
       depositAmount: estimatedPrice / 2,
       createdAt: Date.now(),
