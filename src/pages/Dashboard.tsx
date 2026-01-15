@@ -121,37 +121,77 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     
                     <h3 className="text-lg font-bold text-white">Pedido de Canción</h3>
                     
-                    {order.songsData && order.songsData.map((song, index) => (
-                      <div key={index} className="mb-6 p-4 bg-surface border border-white/10 rounded-lg">
-                        <h4 className="text-white font-bold mb-3">Canción {index + 1}</h4>
+                    {/* Detectar estructura del pedido */}
+                    {order.songsData && Array.isArray(order.songsData) && order.songsData.length > 0 ? (
+                      // Estructura nueva: songsData array
+                      order.songsData.map((song, index) => (
+                        <div key={index} className="mb-6 p-4 bg-surface border border-white/10 rounded-lg">
+                          <h4 className="text-white font-bold mb-3">Canción {index + 1}</h4>
+                          <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-gray-500 text-xs uppercase mb-1">Género</p>
+                              <p>{song.genre || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs uppercase mb-1">Ánimo</p>
+                              <p>{song.mood || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs uppercase mb-1">Ocasión</p>
+                              <p>{song.occasion || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs uppercase mb-1">Cantante</p>
+                              <p>{song.singer || 'N/A'}</p>
+                            </div>
+                            <div className="md:col-span-2">
+                              <p className="text-gray-500 text-xs uppercase mb-1">Instrumentos</p>
+                              <p>{song.instruments && song.instruments.length > 0 ? song.instruments.join(', ') : 'No especificados'}</p>
+                            </div>
+                            <div className="md:col-span-2">
+                              <p className="text-gray-500 text-xs uppercase mb-1">Historia</p>
+                              <p className="italic">"{song.story || 'No proporcionada'}"</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : order.request ? (
+                      // Estructura vieja: request object
+                      <div className="mb-6 p-4 bg-surface border border-white/10 rounded-lg">
+                        <h4 className="text-white font-bold mb-3">Canción</h4>
                         <div className="grid md:grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-gray-500 text-xs uppercase mb-1">Género</p>
-                            <p>{song.genre || 'N/A'}</p>
+                            <p>{order.request.genre || 'N/A'}</p>
                           </div>
                           <div>
                             <p className="text-gray-500 text-xs uppercase mb-1">Ánimo</p>
-                            <p>{song.mood || 'N/A'}</p>
+                            <p>{order.request.mood || 'N/A'}</p>
                           </div>
                           <div>
                             <p className="text-gray-500 text-xs uppercase mb-1">Ocasión</p>
-                            <p>{song.occasion || 'N/A'}</p>
+                            <p>{order.request.occasion || 'N/A'}</p>
                           </div>
                           <div>
                             <p className="text-gray-500 text-xs uppercase mb-1">Cantante</p>
-                            <p>{song.singer || 'N/A'}</p>
+                            <p>{order.request.singer || 'N/A'}</p>
                           </div>
                           <div className="md:col-span-2">
                             <p className="text-gray-500 text-xs uppercase mb-1">Instrumentos</p>
-                            <p>{song.instruments && song.instruments.length > 0 ? song.instruments.join(', ') : 'No especificados'}</p>
+                            <p>{order.request.instruments && order.request.instruments.length > 0 ? order.request.instruments.join(', ') : 'No especificados'}</p>
                           </div>
                           <div className="md:col-span-2">
                             <p className="text-gray-500 text-xs uppercase mb-1">Historia</p>
-                            <p className="italic">"{song.story || 'No proporcionada'}"</p>
+                            <p className="italic">"{order.request.storyText || 'No proporcionada'}"</p>
                           </div>
                         </div>
                       </div>
-                    ))}
+                    ) : (
+                      // No hay datos de canción
+                      <div className="mb-6 p-4 bg-surface border border-white/10 rounded-lg">
+                        <p className="text-gray-400 text-center">No hay datos de canción disponibles</p>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="md:w-48 flex flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
