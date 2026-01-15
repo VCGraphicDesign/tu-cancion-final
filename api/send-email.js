@@ -62,34 +62,18 @@ module.exports = async (req, res) => {
     // Crear variables para el template según el paquete
     const songs = [];
     
-    // Usar los datos reales de cada canción si están disponibles
-    if (songsDataArray && Array.isArray(songsDataArray)) {
-      songsDataArray.forEach((songData, index) => {
-        songs.push({
-          songNumber: index + 1,
-          genre: songData.genre || 'N/A',
-          mood: songData.mood || 'N/A',
-          occasion: songData.occasion || 'N/A',
-          singer: songData.singer || 'N/A',
-          instruments: songData.instruments || [],
-          story: songData.story || 'No proporcionada'
-        });
+    // Usar los datos reales de cada canción
+    songsDataArray.forEach((songData, index) => {
+      songs.push({
+        songNumber: index + 1,
+        genre: songData.genre || 'N/A',
+        mood: songData.mood || 'N/A',
+        occasion: songData.occasion || 'N/A',
+        singer: songData.singer || 'N/A',
+        instruments: songData.instruments || [],
+        story: songData.story || 'No proporcionada'
       });
-    } else {
-      // Fallback: usar datos del request si songsData no está disponible
-      const numSongs = packageType === 'single' ? 1 : packageType === 'duo' ? 2 : 3;
-      for (let i = 0; i < numSongs; i++) {
-        songs.push({
-          songNumber: i + 1,
-          genre: pedidoReal.request?.genre || 'N/A',
-          mood: pedidoReal.request?.mood || 'N/A',
-          occasion: pedidoReal.request?.occasion || 'N/A',
-          singer: pedidoReal.request?.singer || 'N/A',
-          instruments: pedidoReal.request?.instruments || [],
-          story: pedidoReal.request?.storyText || 'No proporcionada'
-        });
-      }
-    }
+    });
 
     const packageInfo = {
       name: packageType === 'single' ? '1 Canción' : packageType === 'duo' ? '2 Canciones' : '3 Canciones',
