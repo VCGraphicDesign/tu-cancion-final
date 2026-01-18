@@ -194,12 +194,12 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                                     <div><p className="text-gray-500 text-xs uppercase mb-1">Nombre Cliente</p><p className="font-semibold">{order.customerName || 'No especificado'}</p></div>
                                     <div><p className="text-gray-500 text-xs uppercase mb-1">Email Cliente</p><p className="text-sm">{order.customerEmail || 'No especificado'}</p></div>
                                     <div><p className="text-gray-500 text-xs uppercase mb-1">ID Cliente</p><p className="font-mono text-xs">{order.userId}</p></div>
-                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Género</p><p>{order.request.genre}</p></div>
-                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Ánimo</p><p>{order.request.mood}</p></div>
-                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Ocasión</p><p>{order.request.occasion}</p></div>
-                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Cantante</p><p>{order.request.singer}</p></div>
-                                    <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Instrumentos</p><p>{order.request.instruments && order.request.instruments.length > 0 ? order.request.instruments.join(', ') : 'No especificados'}</p></div>
-                                    <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Historia</p><p className="italic">"{order.request.storyText}"</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Género</p><p>{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.genre : 'No especificado'}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Ánimo</p><p>{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.mood : 'No especificado'}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Ocasión</p><p>{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.occasion : 'No especificado'}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Cantante</p><p>{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.singer : 'No especificado'}</p></div>
+                                    <div><p className="text-gray-500 text-xs uppercase mb-1">Instrumentos</p><p>{order.songsData && order.songsData.length > 0 && order.songsData[0]?.instruments && order.songsData[0].instruments.length > 0 ? order.songsData[0].instruments.join(', ') : 'No especificados'}</p></div>
+                                    <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Historia</p><p className="italic">"{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.story : 'No especificada'}"</p></div>
                                     {(order.previewUrl || order.finalUrl) && <div className="md:col-span-2 border-t border-white/5 pt-2"><p className="text-xs text-gray-500">Links: {order.previewUrl && <a href={order.previewUrl} target="_blank" className="text-accent underline mr-2">Avance</a>} {order.finalUrl && <a href={order.finalUrl} target="_blank" className="text-primary underline">Final</a>}</p></div>}
                                 </div>
                             </div>
