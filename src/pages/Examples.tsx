@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import AudioPlayer from '../components/AudioPlayer';
 
 interface ExampleSong {
@@ -54,6 +54,12 @@ const EXAMPLES: ExampleSong[] = [
 ];
 
 const Examples: React.FC = () => {
+  const [activeAudioId, setActiveAudioId] = useState<number | null>(null);
+
+  const handleAudioPlay = (songId: number) => {
+    setActiveAudioId(songId);
+  };
+
   return (
     <div className="min-h-screen bg-bgDark py-12 px-4 pb-32">
         <div className="container mx-auto max-w-5xl">
@@ -82,6 +88,8 @@ const Examples: React.FC = () => {
                                     src={song.src} 
                                     title={song.title} 
                                     className="border-none p-0 shadow-none bg-transparent"
+                                    isActive={song.id === activeAudioId}
+                                    onPlay={() => handleAudioPlay(song.id)}
                                 />
                             </div>
                         </div>
