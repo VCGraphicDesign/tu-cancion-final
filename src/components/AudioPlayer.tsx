@@ -7,9 +7,11 @@ interface AudioPlayerProps {
   title: string;
   artist?: string;
   className?: string;
+  isActive?: boolean;
+  onPlay?: () => void;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className = "" }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className = "", isActive = false, onPlay }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -114,6 +116,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className
       };
   }, []);
 
+  // Effect to handle when this audio is no longer active
+  useEffect(() => {
+    if (!isActive && isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [isActive, isPlaying]);
+
   // HTML5 Audio Event Handlers (Only for direct MP3s)
   useEffect(() => {
     if (youtubeId || audiomackEmbedUrl || driveEmbedUrl) return; 
@@ -191,6 +201,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className
         await audio.play();
         setIsPlaying(true);
         setIsLoading(false);
+        if (onPlay) onPlay(); // Notificar al padre que este audio está reproduciéndose
       } catch (error) {
         console.error("Play failed:", error);
         setIsLoading(false);
