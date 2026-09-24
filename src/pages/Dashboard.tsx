@@ -19,6 +19,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   }, [user]);
 
   const loadOrders = async () => {
+    if (!user) return;
     try {
       const userOrders = await orderService.list(user.uid);
       setOrders(userOrders.sort((a, b) => b.createdAt - a.createdAt));

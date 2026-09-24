@@ -3,5 +3,8 @@
   "description": "Una plataforma para crear canciones personalizadas basadas en tus historias y emociones. No dejes que se borre lo que sientes.",
   "requestFramePermissions": [
     "microphone"
+  ],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }

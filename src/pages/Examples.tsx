@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import AudioPlayer from '../components/AudioPlayer';
 
 interface ExampleSong {
@@ -99,9 +100,9 @@ const Examples: React.FC = () => {
             
             <div className="mt-16 text-center">
                  <p className="text-gray-400 text-sm mb-4">¿Te gustó lo que escuchaste?</p>
-                 <a href="/#/create" className="inline-block px-8 py-3 bg-primary hover:bg-primaryDark text-white font-bold rounded-full transition-colors shadow-lg shadow-primary/20">
+                 <Link to="/create" className="inline-block px-8 py-3 bg-primary hover:bg-primaryDark text-white font-bold rounded-full transition-colors shadow-lg shadow-primary/20">
                     Crear mi canción ahora
-                 </a>
+                 </Link>
             </div>
         </div>
     </div>

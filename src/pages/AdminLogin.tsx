@@ -6,16 +6,18 @@ import { authService } from '../services/firebase';
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     // Verificamos si es tu correo autorizado
     if (email.trim().toLowerCase() === 'admin@tucancion.app') {
       // Si el correo es correcto, simulamos el éxito del login para entrar al panel
       navigate('/admin');
     } else {
-      alert("Acceso denegado: Solo personal autorizado.");
+      setError("Acceso denegado: Solo personal autorizado.");
     }
   };
 
@@ -29,6 +31,12 @@ const AdminLogin = () => {
           <h2 className="text-3xl font-serif font-bold text-white">Portal de Producción</h2>
           <p className="text-gray-400 mt-2">Acceso exclusivo para administración</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-sm text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>

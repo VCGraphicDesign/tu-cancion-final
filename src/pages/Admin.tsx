@@ -16,6 +16,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<{[key: string]: any}>({});
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Función para obtener datos del usuario por su ID
   const getUserDetails = async (userId: string) => {
@@ -93,7 +94,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
           await orderService.updateStatus(orderId, newStatus, url);
           loadData();
         } catch(error) {
-          alert("Error subiendo el archivo de audio");
+          console.error("Error subiendo el archivo de audio:", error);
+          setActionError("Error subiendo el archivo de audio");
         } finally {
           setProcessingId(null);
         }
@@ -115,7 +117,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
         await orderService.updateStatus(orderId, newStatus, url);
         loadData();
     } catch(e) {
-        alert("Error actualizando");
+        console.error("Error actualizando estado:", e);
+        setActionError("Error actualizando pedido");
     } finally {
         setProcessingId(null);
     }
@@ -175,6 +178,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                     <button onClick={() => setFilter('completed')} className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${filter === 'completed' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}>Completados</button>
                 </div>
             </div>
+
+            {actionError && (
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200 text-sm flex justify-between items-center">
+                <span>{actionError}</span>
+                <button onClick={() => setActionError(null)} className="text-red-300 hover:text-white text-xs font-bold uppercase">Cerrar</button>
+              </div>
+            )}
 
             <div className="grid gap-6">
                 {filteredOrders.length === 0 ? (

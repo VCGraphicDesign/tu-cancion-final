@@ -1,7 +1,10 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
+const apiKey = (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) || 
+  (typeof process !== 'undefined' && process.env?.API_KEY) || 
+  (import.meta.env?.VITE_GEMINI_API_KEY as string) || 
+  '';
 
 // Helper to check if API key is present before making calls
 const isApiKeyAvailable = (): boolean => {

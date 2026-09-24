@@ -46,6 +46,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [songsData, setSongsData] = useState<any[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const PACKAGES: Package[] = [
@@ -75,8 +76,9 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
   };
 
   const handleGoToPayment = async () => {
+    setErrorMessage(null);
     if (!user) {
-      alert("Debes estar logueado para continuar.");
+      setErrorMessage("Debes iniciar sesión para continuar.");
       return;
     }
     
@@ -118,13 +120,18 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
 
     } catch (error) {
       console.error("Error al crear el pedido:", error);
-      alert("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
+      setErrorMessage("Ocurrió un error al guardar tu solicitud. Por favor, intenta de nuevo.");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pt-10 pb-20 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-2xl text-red-200 text-sm text-center">
+            {errorMessage}
+          </div>
+        )}
         
         {step === 1 && (
           <div className="text-center animate-in fade-in">

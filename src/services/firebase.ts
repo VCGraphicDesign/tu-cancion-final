@@ -33,22 +33,22 @@ import {
 import { User, Order, SongRequest } from '../types';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDVBVueL9KhuiTBClXES1qyyq_rYaM7fzY",
-  authDomain: "tu-cancion-final.firebaseapp.com",
-  projectId: "tu-cancion-final",
-  storageBucket: "tu-cancion-final.firebasestorage.app",
-  messagingSenderId: "444251950172",
-  appId: "1:444251950172:web:308e850ae2a4b1c0f6ea99",
-  measurementId: "G-KDC5JPLGFR"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDVBVueL9KhuiTBClXES1qyyq_rYaM7fzY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "tu-cancion-final.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "tu-cancion-final",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "tu-cancion-final.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "444251950172",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:444251950172:web:308e850ae2a4b1c0f6ea99",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-KDC5JPLGFR"
 };
 
 
 const googleProvider = new GoogleAuthProvider();
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 // setPersistence(auth, browserLocalPersistence);  // ELIMINAR ESTA LÍNEA
-const db = getFirestore(app);
-const storage = getStorage(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const authService = {
   loginGoogle: async (): Promise<User> => {
     const result = await signInWithPopup(auth, googleProvider);
@@ -90,7 +90,7 @@ export const authService = {
 };
 
 export const orderService = {
-  create: async (userId: string, request: SongRequest & { customerEmail?: string; customerName?: string; songsData?: any[] }): Promise<Order> => {
+  create: async (userId: string, request: Partial<SongRequest> & { package: 'single' | 'duo' | 'trio'; customerEmail?: string; customerName?: string; songsData?: any[] }): Promise<Order> => {
     const estimatedPrice = 30000; 
     const newOrderData = {
       userId,

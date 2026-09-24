@@ -24,7 +24,7 @@ export interface Order {
   customerName?: string;
   status: 'pending_payment' | 'deposit_paid' | 'in_progress' | 'preview_ready' | 'completed';
   package: 'single' | 'duo' | 'trio';
-  songsData: Array<{
+  songsData?: Array<{
     genre: string;
     mood: string;
     occasion: string;
@@ -32,6 +32,7 @@ export interface Order {
     instruments: string[];
     story: string;
   }>;
+  request?: any;
   price: number;
   depositAmount: number;
   createdAt: number;
