@@ -56,14 +56,14 @@ export const authService = {
   },
   
   registerWithEmail: async (email: string, password: string, name: string): Promise<User> => {
-    console.log("Intentando registrar:", email);
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("Registro exitoso:", result.user.uid);
       await updateProfile(result.user, { displayName: name });
       return mapUser(result.user);
     } catch (error: any) {
-      console.error("Error en registro:", error.code, error.message);
+      if (error?.code !== 'auth/email-already-in-use') {
+        console.error("Error en registro:", error?.code, error?.message);
+      }
       throw error;
     }
   },
@@ -90,8 +90,9 @@ export const authService = {
 };
 
 export const orderService = {
-  create: async (userId: string, request: Partial<SongRequest> & { package: 'single' | 'duo' | 'trio'; customerEmail?: string; customerName?: string; songsData?: any[] }): Promise<Order> => {
-    const estimatedPrice = 30000; 
+  create: async (userId: string, request: Partial<SongRequest> & { package: 'single' | 'duo' | 'trio'; customerEmail?: string; customerName?: string; songsData?: any[]; price?: number }): Promise<Order> => {
+    const defaultPrices = { single: 30000, duo: 45000, trio: 60000 };
+    const price = request.price || defaultPrices[request.package] || 30000;
     const newOrderData = {
       userId,
       customerEmail: request.customerEmail,
@@ -99,8 +100,8 @@ export const orderService = {
       status: 'pending_payment',
       package: request.package,
       songsData: request.songsData || [],
-      price: estimatedPrice,
-      depositAmount: estimatedPrice / 2,
+      price: price,
+      depositAmount: price / 2,
       createdAt: Date.now(),
     };
     const docRef = await addDoc(collection(db, "orders"), newOrderData);

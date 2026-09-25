@@ -86,6 +86,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
       // Crear UN solo pedido con todas las canciones
       const newOrder = await orderService.create(user.uid, { 
         package: selectedPackage?.id === '1' ? 'single' : selectedPackage?.id === '2' ? 'duo' : 'trio',
+        price: selectedPackage?.price || 30000,
         songsData: songsData.map(song => ({
           genre: song?.genre || '',
           mood: song?.mood || '',

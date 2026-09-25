@@ -8,6 +8,32 @@ interface AuthProps {
   onLogin: (user: UserType | null) => void;
 }
 
+const getFriendlyAuthErrorMessage = (err: any): string => {
+  const code = err?.code || '';
+  if (code === 'auth/email-already-in-use') {
+    return 'Este correo electrónico ya está registrado. Por favor, ingresa con tu contraseña o con Google.';
+  }
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+    return 'Correo o contraseña incorrectos. Verifica tus datos o crea una cuenta nueva.';
+  }
+  if (code === 'auth/weak-password') {
+    return 'La contraseña debe tener al menos 6 caracteres.';
+  }
+  if (code === 'auth/invalid-email') {
+    return 'El formato del correo electrónico no es válido.';
+  }
+  if (code === 'auth/popup-closed-by-user') {
+    return 'Se canceló el inicio de sesión con Google.';
+  }
+  if (code === 'auth/too-many-requests') {
+    return 'Demasiados intentos fallidos. Por favor, espera unos minutos e intenta nuevamente.';
+  }
+  if (code === 'auth/network-request-failed') {
+    return 'Error de conexión. Revisa tu acceso a internet.';
+  }
+  return err?.message || 'Error de autenticación. Verifica tus credenciales.';
+};
+
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -63,8 +89,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         navigate('/create');
       }
     } catch(err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Error al iniciar sesión con Google.');
+      if (err?.code !== 'auth/popup-closed-by-user') {
+        console.error('Login error:', err);
+      }
+      setError(getFriendlyAuthErrorMessage(err));
       setIsLoading(false);
     }
   };
@@ -105,8 +133,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         navigate('/create');
       }
     } catch (err: any) {
-      console.error('Auth error:', err);
-      setError(err.message || 'Error de autenticación. Verifica tus credenciales.');
+      if (err?.code !== 'auth/email-already-in-use' && err?.code !== 'auth/invalid-credential' && err?.code !== 'auth/wrong-password' && err?.code !== 'auth/user-not-found') {
+        console.error('Auth error:', err);
+      }
+      setError(getFriendlyAuthErrorMessage(err));
       setIsLoading(false);
     }
   };
@@ -137,9 +167,23 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-3 text-red-200 text-sm">
-            <AlertCircle size={16} />
-            {error}
+          <div className="mb-6 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex flex-col gap-2 text-red-200 text-sm">
+            <div className="flex items-center gap-3">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+            {isRegistering && error.includes('ya está registrado') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(false);
+                  setError('');
+                }}
+                className="text-xs text-primary hover:text-emerald-400 font-bold underline self-start pl-7"
+              >
+                Hacer clic aquí para Ingresar
+              </button>
+            )}
           </div>
         )}
 
@@ -154,7 +198,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <div className="flex bg-bgDark border border-white/10 rounded-xl p-1">
               <button
                 type="button"
-                onClick={() => setIsRegistering(false)}
+                onClick={() => {
+                  setIsRegistering(false);
+                  setError('');
+                }}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
                   !isRegistering 
                     ? 'bg-primary text-white shadow-md' 
@@ -165,7 +212,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               </button>
               <button
                 type="button"
-                onClick={() => setIsRegistering(true)}
+                onClick={() => {
+                  setIsRegistering(true);
+                  setError('');
+                }}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
                   isRegistering 
                     ? 'bg-primary text-white shadow-md' 
