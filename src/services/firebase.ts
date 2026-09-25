@@ -95,8 +95,8 @@ export const orderService = {
     const price = request.price || defaultPrices[request.package] || 30000;
     const newOrderData = {
       userId,
-      customerEmail: request.customerEmail,
-      customerName: request.customerName,
+      customerEmail: request.customerEmail || '',
+      customerName: request.customerName || request.customerEmail || 'Cliente',
       status: 'pending_payment',
       package: request.package,
       songsData: request.songsData || [],

@@ -95,8 +95,8 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
           instruments: song?.instruments || [],
           story: song?.story || ''
         })),
-        customerEmail: user.email,
-        customerName: user.displayName
+        customerEmail: user.email || '',
+        customerName: user.displayName || user.email || 'Cliente'
       });
 
       // Extraer solo datos JSON puros para evitar DataCloneError
@@ -106,7 +106,7 @@ const CreateRequest: React.FC<CreateRequestProps> = ({ user }) => {
         packagePrice: selectedPackage?.price || 0,
         packageSongs: selectedPackage?.songs || 0,
         customerEmail: user?.email || '',
-        customerName: user?.displayName || '',
+        customerName: user?.displayName || user?.email || 'Cliente',
         songsData: songsData.map(song => ({
           genre: song?.genre || '',
           mood: song?.mood || '',
