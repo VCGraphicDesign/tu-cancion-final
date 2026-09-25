@@ -4,7 +4,7 @@
  * * Despliegue: firebase deploy --only functions
  */
 
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 // const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Descomentar al instalar stripe
 
