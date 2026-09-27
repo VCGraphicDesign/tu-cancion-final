@@ -198,9 +198,10 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     setSendErrorMessage(null);
     setSendSuccessMessage(null);
 
+    const directFunctionUrl = 'https://us-central1-tu-cancion-final.cloudfunctions.net/sendFinalPaymentEmail';
     const endpoints = window.location.origin.includes('localhost')
-      ? ['https://tucancion.app/api/send-final-payment-email', '/api/send-final-payment-email']
-      : ['/api/send-final-payment-email', 'https://tucancion.app/api/send-final-payment-email'];
+      ? ['https://tucancion.app/api/send-final-payment-email', directFunctionUrl, '/api/send-final-payment-email']
+      : ['/api/send-final-payment-email', 'https://tucancion.app/api/send-final-payment-email', directFunctionUrl];
 
     let sent = false;
     let resultData: any = null;
@@ -217,13 +218,20 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
           })
         });
 
-        const resJson = await response.json().catch(() => ({}));
-        if (response.ok && resJson.success) {
+        let resJson: any = null;
+        try {
+          resJson = await response.json();
+        } catch {
+          const rawText = await response.text().catch(() => '');
+          resJson = { error: rawText || `Error de conexión (HTTP ${response.status})` };
+        }
+
+        if (response.ok && resJson?.success) {
           sent = true;
           resultData = resJson.data;
           break;
         } else {
-          lastError = new Error(resJson.error || `Error del servidor (${response.status})`);
+          lastError = new Error(resJson?.error || `Error del servidor (HTTP ${response.status})`);
         }
       } catch (err: any) {
         lastError = err;
@@ -256,7 +264,11 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       setSendSuccessMessage(`¡Enlace enviado con éxito a ${sentTo}!`);
     } else {
       console.error('Error enviando email de pago final:', lastError);
-      setSendErrorMessage(lastError?.message || 'Error al conectar con el servicio de correo.');
+      setSendErrorMessage(
+        lastError?.message
+          ? `No se pudo enviar el correo: ${lastError.message}`
+          : 'Error al conectar con el servicio de correo. Por favor intenta nuevamente.'
+      );
     }
 
     setSendingId(null);

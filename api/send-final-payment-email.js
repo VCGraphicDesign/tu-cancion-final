@@ -179,6 +179,7 @@ module.exports = async (req, res) => {
     const { data, error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: customerEmail,
+      reply_to: 'contacto@tucancion.app',
       subject: `🎵 Tu Canción está lista para entrega final - Saldo pendiente (#${orderId.slice(0, 8)})`,
       html: htmlFinalPayment,
     });
