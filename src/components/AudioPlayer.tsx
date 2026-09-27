@@ -297,7 +297,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className
 
   return (
     <div 
-        className={`bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-4 hover:border-white/20 transition-all group select-none ${className}`}
+        className={`w-full max-w-full min-w-0 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3 sm:gap-4 hover:border-white/20 transition-all group select-none ${className}`}
         onContextMenu={(e) => e.preventDefault()}
     >
       {directUrl && (
@@ -331,13 +331,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className
       </button>
 
       <div className="flex-grow min-w-0">
-        <div className="flex justify-between items-baseline mb-1">
-            <div className="truncate pr-4">
+        <div className="flex justify-between items-baseline mb-1 gap-2 min-w-0">
+            <div className="truncate min-w-0 flex-1">
                 <h4 className="font-bold text-white truncate text-sm md:text-base">
                     {title}
                 </h4>
             </div>
-            <span className="text-xs text-gray-400 font-mono whitespace-nowrap">
+            <span className="text-xs text-gray-400 font-mono whitespace-nowrap flex-shrink-0">
                 {hasError ? "Error" : `${formatTime(progress)} / ${formatTime(duration)}`}
             </span>
         </div>
@@ -369,7 +369,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title, artist, className
                   audioRef.current.muted = !isMuted;
                   setIsMuted(!isMuted);
               }
-          }} className="text-gray-400 hover:text-white transition-colors p-2 hidden sm:block">
+          }} className="text-gray-400 hover:text-white transition-colors p-2 hidden sm:block flex-shrink-0">
             {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
       )}

@@ -77,14 +77,14 @@ const Examples: React.FC = () => {
             {/* Compact Grid Layout */}
             <div className="grid md:grid-cols-2 gap-4">
                 {EXAMPLES.map((song, index) => (
-                    <div key={song.id} className="bg-surface border border-white/10 rounded-xl p-3 hover:border-accent/30 transition-all hover:bg-white/5 flex items-center gap-3 shadow-lg">
+                    <div key={song.id} className="bg-surface border border-white/10 rounded-xl p-3 hover:border-accent/30 transition-all hover:bg-white/5 flex items-center gap-3 shadow-lg min-w-0 overflow-hidden">
                         <div className="w-8 h-8 flex-shrink-0 rounded-full bg-white/5 flex items-center justify-center text-gray-400 text-sm font-bold">
                             {index + 1}
                         </div>
                         <div className="flex-grow min-w-0">
                             <h3 className="font-bold text-white text-sm mb-2 truncate px-1">{song.title}</h3>
                             {/* Slim Player Container */}
-                            <div className="w-full">
+                            <div className="w-full min-w-0">
                                 <AudioPlayer 
                                     src={song.src} 
                                     title={song.title} 
