@@ -761,4 +761,208 @@ exports.sendFinalPaymentEmail = functions.https
     }
   });
 
+// ==============================================================
+// 6. Consulta pública de datos de pago final (sin Auth)
+// GET /api/get-order-public?orderId=XXX
+// Devuelve únicamente los datos estrictamente necesarios para
+// que FinalPayment pueda mostrar el saldo pendiente y validar
+// el estado del pedido, sin exponer información privada.
+// ==============================================================
+exports.getOrderPublic = functions.https.onRequest(async (req, res) => {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  const { orderId } = req.query;
+
+  if (!orderId || typeof orderId !== 'string' || orderId.trim() === '') {
+    return res.status(400).json({ success: false, error: 'Missing required parameter: orderId' });
+  }
+
+  try {
+    const db = admin.firestore();
+    const docSnap = await db.collection('orders').doc(orderId).get();
+
+    if (!docSnap.exists) {
+      return res.status(404).json({ success: false, error: 'Pedido no encontrado.' });
+    }
+
+    const data = docSnap.data();
+    const status = data.status || '';
+
+    // Pedidos en estos estados no deben permitir el pago final
+    if (status === 'completed') {
+      return res.status(200).json({
+        success: true,
+        completed: true,
+        message: 'Este pedido ya está completamente pagado.',
+      });
+    }
+
+    if (status === 'pending_payment') {
+      return res.status(200).json({
+        success: true,
+        blocked: true,
+        message: 'El anticipo de este pedido aún no ha sido confirmado.',
+      });
+    }
+
+    // Calcular saldo pendiente
+    const price = Number(data.price) || 0;
+    const depositAmount = Number(data.depositAmount) || 0;
+    const remainingAmount = Math.max(0, price - depositAmount);
+
+    // Devolver SOLO los datos necesarios para el pago final
+    // NO se incluye: customerEmail, userId, songsData, receiptUrl,
+    // información administrativa, ni ningún dato privado del cliente.
+    return res.status(200).json({
+      success: true,
+      order: {
+        id: docSnap.id,
+        status,
+        price,
+        depositAmount,
+        remainingAmount,
+        customerName: data.customerName || 'Cliente',
+      },
+    });
+  } catch (err) {
+    console.error('🔥 getOrderPublic error:', err);
+    return res.status(500).json({ success: false, error: 'Error interno al consultar el pedido.' });
+  }
+});
+
+// ==============================================================
+// 7. Envío del comprobante de pago final (sin Auth de cliente)
+// POST /api/submit-final-receipt
+// Recibe { orderId } + archivo adjunto (multipart/form-data).
+// Usa Admin SDK para escribir en Firestore y Storage sin requerir
+// Firebase Auth activo en el cliente.
+// ==============================================================
+exports.submitFinalReceipt = functions.https.onRequest(async (req, res) => {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  try {
+    const Busboy = require('busboy');
+    const path = require('path');
+    const os = require('os');
+    const fs = require('fs');
+
+    const { orderId } = req.body || {};
+
+    // Si viene como form-data, el orderId puede estar en los campos
+    let resolvedOrderId = orderId;
+    let fileBuffer = null;
+    let fileName = null;
+    let fileMime = null;
+
+    await new Promise((resolve, reject) => {
+      const busboy = Busboy({ headers: req.headers });
+      const tmpdir = os.tmpdir();
+      const uploads = {};
+      let fields = {};
+
+      busboy.on('field', (fieldname, val) => {
+        fields[fieldname] = val;
+      });
+
+      busboy.on('file', (fieldname, file, info) => {
+        const { filename, mimeType } = info;
+        const filepath = path.join(tmpdir, filename);
+        uploads[fieldname] = { filepath, filename, mimeType };
+        const writeStream = fs.createWriteStream(filepath);
+        file.pipe(writeStream);
+      });
+
+      busboy.on('finish', () => {
+        resolvedOrderId = resolvedOrderId || fields.orderId;
+        if (uploads.receipt) {
+          fileBuffer = fs.readFileSync(uploads.receipt.filepath);
+          fileName = uploads.receipt.filename;
+          fileMime = uploads.receipt.mimeType;
+          // Limpiar archivo temporal
+          try { fs.unlinkSync(uploads.receipt.filepath); } catch (_) {}
+        }
+        resolve();
+      });
+
+      busboy.on('error', reject);
+      req.pipe(busboy);
+    });
+
+    if (!resolvedOrderId || typeof resolvedOrderId !== 'string') {
+      return res.status(400).json({ success: false, error: 'Missing required field: orderId' });
+    }
+
+    if (!fileBuffer || !fileName) {
+      return res.status(400).json({ success: false, error: 'Missing required field: receipt file' });
+    }
+
+    const db = admin.firestore();
+    const docSnap = await db.collection('orders').doc(resolvedOrderId).get();
+
+    if (!docSnap.exists) {
+      return res.status(404).json({ success: false, error: 'Pedido no encontrado.' });
+    }
+
+    const orderData = docSnap.data();
+
+    if (orderData.status === 'completed') {
+      return res.status(409).json({ success: false, error: 'Este pedido ya está completamente pagado.' });
+    }
+
+    // Sanitizar nombre de archivo
+    const sanitized = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `receipts-final/public/${resolvedOrderId}/${Date.now()}_${sanitized}`;
+
+    // Subir a Firebase Storage con Admin SDK
+    const bucket = admin.storage().bucket();
+    const fileRef = bucket.file(storagePath);
+    await fileRef.save(fileBuffer, {
+      metadata: { contentType: fileMime || 'application/octet-stream' },
+    });
+
+    // Hacer el archivo accesible públicamente para lectura
+    await fileRef.makePublic();
+    const downloadUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+
+    // Actualizar el pedido en Firestore con Admin SDK
+    await db.collection('orders').doc(resolvedOrderId).update({
+      finalReceiptUrl: downloadUrl,
+      finalReceiptFileName: fileName,
+      finalReceiptUploadedAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: 'completed',
+    });
+
+    console.log(`✅ Comprobante final subido para pedido ${resolvedOrderId}: ${storagePath}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Comprobante recibido y pedido marcado como completado.',
+      downloadUrl,
+    });
+  } catch (err) {
+    console.error('🔥 submitFinalReceipt error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Error interno del servidor.' });
+  }
+});

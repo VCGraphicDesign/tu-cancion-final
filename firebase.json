@@ -23,6 +23,14 @@
         "function": "sendFinalPaymentEmail"
       },
       {
+        "source": "/api/get-order-public",
+        "function": "getOrderPublic"
+      },
+      {
+        "source": "/api/submit-final-receipt",
+        "function": "submitFinalReceipt"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

@@ -12,14 +12,20 @@ import {
   Music2,
   ChevronDown
 } from 'lucide-react';
-import { User, Order } from '../types';
-import { storage, db } from '../services/firebase';
-import { orderService } from '../services/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { User } from '../types';
 
 interface FinalPaymentProps {
   user: User | null;
+}
+
+// Datos mínimos del pedido que el backend público devuelve
+interface PublicOrderData {
+  id: string;
+  status: string;
+  price: number;
+  depositAmount: number;
+  remainingAmount: number;
+  customerName: string;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -42,11 +48,57 @@ const BANK_INSTITUTIONS = [
   { name: 'Mercado Pago', url: 'https://www.mercadopago.cl/' },
 ];
 
+// Endpoints del backend — el mismo origen sirve en producción,
+// la URL directa de Cloud Function actúa como respaldo.
+const API_BASE = '/api';
+const DIRECT_FUNCTION_BASE = 'https://us-central1-tu-cancion-final.cloudfunctions.net';
+
+async function fetchOrderPublic(orderId: string): Promise<{ order?: PublicOrderData; completed?: boolean; blocked?: boolean; error?: string }> {
+  const endpoints = [
+    `${API_BASE}/get-order-public?orderId=${encodeURIComponent(orderId)}`,
+    `${DIRECT_FUNCTION_BASE}/getOrderPublic?orderId=${encodeURIComponent(orderId)}`,
+  ];
+  let lastError = 'Error de conexión.';
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url);
+      const json = await res.json().catch(() => null);
+      if (json) return json;
+    } catch (_) {
+      // continuar con el siguiente endpoint
+    }
+  }
+  return { error: lastError };
+}
+
+async function submitReceiptBackend(orderId: string, file: File): Promise<{ success: boolean; error?: string }> {
+  const formData = new FormData();
+  formData.append('orderId', orderId);
+  formData.append('receipt', file);
+
+  const endpoints = [
+    `${API_BASE}/submit-final-receipt`,
+    `${DIRECT_FUNCTION_BASE}/submitFinalReceipt`,
+  ];
+  let lastError = 'Error de conexión al enviar el comprobante.';
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, { method: 'POST', body: formData });
+      const json = await res.json().catch(() => null);
+      if (json?.success) return { success: true };
+      if (json?.error) lastError = json.error;
+    } catch (e: any) {
+      lastError = e?.message || lastError;
+    }
+  }
+  return { success: false, error: lastError };
+}
+
 const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
 
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<PublicOrderData | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
   const [orderError, setOrderError] = useState<string | null>(null);
 
@@ -63,15 +115,17 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
       setLoadingOrder(false);
       return;
     }
-    orderService.getOrder(orderId).then((o) => {
-      if (!o) {
+    fetchOrderPublic(orderId).then((result) => {
+      if (result.error) {
         setOrderError('No se encontró el pedido asociado a este enlace.');
-      } else if (o.status === 'completed') {
+      } else if (result.completed) {
         setOrderError('Este pedido ya está completamente pagado.');
-      } else if (o.status === 'pending_payment') {
+      } else if (result.blocked) {
         setOrderError('El anticipo de este pedido aún no ha sido confirmado.');
+      } else if (result.order) {
+        setOrder(result.order);
       } else {
-        setOrder(o);
+        setOrderError('Error al cargar el pedido. Por favor intenta nuevamente.');
       }
       setLoadingOrder(false);
     }).catch(() => {
@@ -80,7 +134,7 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
     });
   }, [orderId]);
 
-  const remainingAmount = order ? order.price - order.depositAmount : 0;
+  const remainingAmount = order ? order.remainingAmount : 0;
 
   const formatMoney = (amount: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
@@ -112,10 +166,6 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
 
   const handlePayment = async () => {
     setErrorMessage(null);
-    if (!user || !user.uid) {
-      setErrorMessage('Debes iniciar sesión para registrar tu comprobante de pago.');
-      return;
-    }
     if (!orderId || !order) {
       setErrorMessage('No se encontró el identificador del pedido.');
       return;
@@ -126,25 +176,19 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
     }
     setIsProcessing(true);
     try {
-      const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storagePath = `receipts-final/${user.uid}/${orderId}/${sanitizedFileName}`;
-      const storageRef = ref(storage, storagePath);
-      const snapshot = await uploadBytes(storageRef, selectedFile);
-      const downloadUrl = await getDownloadURL(snapshot.ref);
+      const result = await submitReceiptBackend(orderId, selectedFile);
+      if (!result.success) {
+        setIsProcessing(false);
+        setErrorMessage(result.error || 'Ocurrió un error al subir el comprobante. Por favor, intenta nuevamente.');
+        return;
+      }
 
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, {
-        finalReceiptUrl: downloadUrl,
-        finalReceiptFileName: selectedFile.name,
-        finalReceiptUploadedAt: serverTimestamp(),
-        status: 'completed'
-      });
-
+      // Notificación interna por correo (best-effort, no bloquea)
       try {
-        await fetch('https://tucancion.app/api/send-email', {
+        await fetch(`${API_BASE}/send-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId })
+          body: JSON.stringify({ orderId }),
         });
       } catch (emailError) {
         console.error('Error al enviar notificación por correo:', emailError);
@@ -199,8 +243,8 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
             Hemos recibido tu comprobante de pago final.<br />
             Verificaremos la transferencia y te notificaremos cuando tu pedido esté completamente finalizado.
           </p>
-          <button onClick={() => navigate('/dashboard')} className="w-full py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all">
-            Ir a Mis Pedidos
+          <button onClick={() => navigate('/')} className="w-full py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all">
+            Ir al inicio
           </button>
         </div>
       </div>
@@ -271,7 +315,7 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
 
         {/* MÉTODO DE PAGO: IR A MI BANCO (DESPLEGABLE) */}
         <div className="mb-6">
-          <button 
+          <button
             type="button"
             onClick={() => setIsBankListOpen(!isBankListOpen)}
             className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-white bg-white/5 transition-all hover:bg-white/10 text-left"
@@ -280,9 +324,9 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
             <span className="font-bold text-white">Ir a mi Banco</span>
             <div className="ml-auto flex items-center gap-2">
               <CheckCircle2 size={20} className="text-white" />
-              <ChevronDown 
-                size={20} 
-                className={`text-gray-400 transition-transform duration-200 ${isBankListOpen ? 'rotate-180' : ''}`} 
+              <ChevronDown
+                size={20}
+                className={`text-gray-400 transition-transform duration-200 ${isBankListOpen ? 'rotate-180' : ''}`}
               />
             </div>
           </button>
