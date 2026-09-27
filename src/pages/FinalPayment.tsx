@@ -9,7 +9,8 @@ import {
   Upload,
   FileText,
   X,
-  Music2
+  Music2,
+  ChevronDown
 } from 'lucide-react';
 import { User, Order } from '../types';
 import { storage, db } from '../services/firebase';
@@ -23,6 +24,24 @@ interface FinalPaymentProps {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+const BANK_INSTITUTIONS = [
+  { name: 'Banco de Chile', url: 'https://sitiospublicos.bancochile.cl/personas' },
+  { name: 'Banco Internacional', url: 'https://www.bancointernacional.cl/' },
+  { name: 'Scotiabank Chile', url: 'https://www.scotiabankchile.cl/' },
+  { name: 'Banco Bci', url: 'https://www.bci.cl/personas' },
+  { name: 'Banco BICE', url: 'https://banco.bice.cl/personas' },
+  { name: 'Banco Santander Chile', url: 'https://banco.santander.cl/' },
+  { name: 'Banco Itaú Chile', url: 'https://www.itau.cl/' },
+  { name: 'Banco Falabella', url: 'https://www.bancofalabella.cl/' },
+  { name: 'Banco Ripley', url: 'https://www.bancoripley.cl/' },
+  { name: 'Banco Consorcio', url: 'https://www.consorcio.cl/' },
+  { name: 'Banco BTG Pactual Chile', url: 'https://www.btgpactual.cl/' },
+  { name: 'Tanner Banco Digital', url: 'https://www.tanner.cl/' },
+  { name: 'Tenpo Bank Chile', url: 'https://www.tenpo.cl/' },
+  { name: 'BancoEstado', url: 'https://www.bancoestado.cl/' },
+  { name: 'Mercado Pago', url: 'https://www.mercadopago.cl/' },
+];
+
 const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
@@ -35,6 +54,7 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isBankListOpen, setIsBankListOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -249,13 +269,41 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* MÉTODO */}
+        {/* MÉTODO DE PAGO: IR A MI BANCO (DESPLEGABLE) */}
         <div className="mb-6">
-          <button className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-white bg-white/5 cursor-default">
-            <ExternalLink size={24} className="text-white" />
+          <button 
+            type="button"
+            onClick={() => setIsBankListOpen(!isBankListOpen)}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-white bg-white/5 transition-all hover:bg-white/10 text-left"
+          >
+            <ExternalLink size={24} className="text-white flex-shrink-0" />
             <span className="font-bold text-white">Ir a mi Banco</span>
-            <div className="ml-auto"><CheckCircle2 size={20} className="text-white" /></div>
+            <div className="ml-auto flex items-center gap-2">
+              <CheckCircle2 size={20} className="text-white" />
+              <ChevronDown 
+                size={20} 
+                className={`text-gray-400 transition-transform duration-200 ${isBankListOpen ? 'rotate-180' : ''}`} 
+              />
+            </div>
           </button>
+
+          {/* DESPLEGABLE DE INSTITUCIONES BANCARIAS */}
+          {isBankListOpen && (
+            <div className="mt-3 p-3 bg-[#141414] border border-white/10 rounded-2xl text-left shadow-xl max-h-72 overflow-y-auto divide-y divide-white/5">
+              {BANK_INSTITUTIONS.map((bank) => (
+                <a
+                  key={bank.name}
+                  href={bank.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-white/10 transition-colors text-white text-sm font-medium group"
+                >
+                  <span className="group-hover:text-accent transition-colors">{bank.name}</span>
+                  <ExternalLink size={16} className="text-gray-400 group-hover:text-white transition-colors flex-shrink-0 ml-2" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* COMPROBANTE */}
