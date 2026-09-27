@@ -1,6 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Music, Play, CheckCircle, Clock, DollarSign, Upload, User, Filter, Search, Link as LinkIcon } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  Music, 
+  Play, 
+  CheckCircle, 
+  Clock, 
+  DollarSign, 
+  Upload, 
+  User, 
+  Filter, 
+  Search, 
+  Link as LinkIcon,
+  Mail,
+  Eye,
+  Send,
+  Check,
+  AlertCircle,
+  Copy,
+  X,
+  Loader2
+} from 'lucide-react';
 import { orderService } from '../services/firebase';
 import { Order, User as UserType } from '../types';
 import { getAuth } from 'firebase/auth';
@@ -20,6 +40,10 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [userDetails, setUserDetails] = useState<{[key: string]: any}>({});
   const [actionError, setActionError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [previewOrder, setPreviewOrder] = useState<Order | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendSuccessMessage, setSendSuccessMessage] = useState<string | null>(null);
+  const [sendErrorMessage, setSendErrorMessage] = useState<string | null>(null);
 
   // Función para obtener datos del usuario por su ID
   const getUserDetails = async (userId: string) => {
@@ -146,9 +170,9 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   };
 
   const copyFinalLink = async (order: Order) => {
-    const url = order.finalPaymentUrl || `${window.location.origin}/final/${order.id}`;
-    if (!order.finalPaymentUrl) {
-      await generateFinalLink(order);
+    let url = order.finalPaymentUrl;
+    if (!url) {
+      url = await generateFinalLink(order);
     }
     try {
       await navigator.clipboard.writeText(url);
@@ -157,6 +181,85 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     } catch (e) {
       console.error('Error copiando al portapapeles:', e);
     }
+  };
+
+  const sendFinalPaymentEmail = async (order: Order) => {
+    let finalUrl = order.finalPaymentUrl;
+    if (!finalUrl) {
+      finalUrl = await generateFinalLink(order);
+    }
+
+    if (!order.customerEmail) {
+      setSendErrorMessage('Este pedido no tiene un correo de cliente (customerEmail) asociado.');
+      return;
+    }
+
+    setSendingId(order.id);
+    setSendErrorMessage(null);
+    setSendSuccessMessage(null);
+
+    const endpoints = window.location.origin.includes('localhost')
+      ? ['https://tucancion.app/api/send-final-payment-email', '/api/send-final-payment-email']
+      : ['/api/send-final-payment-email', 'https://tucancion.app/api/send-final-payment-email'];
+
+    let sent = false;
+    let resultData: any = null;
+    let lastError: any = null;
+
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: order.id,
+            finalPaymentUrl: finalUrl
+          })
+        });
+
+        const resJson = await response.json().catch(() => ({}));
+        if (response.ok && resJson.success) {
+          sent = true;
+          resultData = resJson.data;
+          break;
+        } else {
+          lastError = new Error(resJson.error || `Error del servidor (${response.status})`);
+        }
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    if (sent) {
+      const now = resultData?.sentAt || Date.now();
+      const count = resultData?.sentCount || ((order.finalPaymentLinkSentCount || 0) + 1);
+      const sentTo = resultData?.sentTo || order.customerEmail;
+
+      // Actualizar estado local de la lista
+      setOrders(prev => prev.map(o => o.id === order.id ? {
+        ...o,
+        finalPaymentUrl: finalUrl,
+        finalPaymentLinkSentAt: now,
+        finalPaymentLinkSentTo: sentTo,
+        finalPaymentLinkSentCount: count,
+      } : o));
+
+      // Actualizar preview si está abierto
+      setPreviewOrder(prev => (prev && prev.id === order.id) ? {
+        ...prev,
+        finalPaymentUrl: finalUrl,
+        finalPaymentLinkSentAt: now,
+        finalPaymentLinkSentTo: sentTo,
+        finalPaymentLinkSentCount: count,
+      } : prev);
+
+      setSendSuccessMessage(`¡Enlace enviado con éxito a ${sentTo}!`);
+    } else {
+      console.error('Error enviando email de pago final:', lastError);
+      setSendErrorMessage(lastError?.message || 'Error al conectar con el servicio de correo.');
+    }
+
+    setSendingId(null);
   };
 
   const filteredOrders = orders.filter(o => {
@@ -251,35 +354,75 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                                 {order.status === 'in_progress' && <button onClick={() => handleStatusUpdate(order.id, 'preview_ready')} className="w-full py-2 bg-accent text-bgDark font-bold rounded-lg"><Upload size={16} className="inline mr-1"/> Subir Avance</button>}
                                 {order.status === 'preview_ready' && <button onClick={() => handleStatusUpdate(order.id, 'completed')} className="w-full py-2 bg-primary hover:bg-primaryDark text-white font-bold rounded-lg"><CheckCircle size={16} className="inline mr-1"/> Completado</button>}
 
-                                {/* ENLACE DE PAGO FINAL — visible para pedidos con saldo pendiente */}
+                                {/* LINK DE PAGO FINAL — visible para pedidos con saldo pendiente */}
                                 {order.status !== 'pending_payment' && order.status !== 'completed' && (
                                   <div className="mt-1 border-t border-white/10 pt-3">
-                                    <p className="text-[11px] text-gray-500 uppercase font-bold mb-2">Enlace pago final</p>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <p className="text-[11px] text-accent uppercase font-bold tracking-wider flex items-center gap-1.5">
+                                        <LinkIcon size={12} /> Link de pago final
+                                      </p>
+                                      {order.finalPaymentLinkSentAt && (
+                                        <span className="text-[10px] text-green-400 font-semibold bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                                          Enviado {order.finalPaymentLinkSentCount && order.finalPaymentLinkSentCount > 1 ? `(${order.finalPaymentLinkSentCount}x)` : ''}
+                                        </span>
+                                      )}
+                                    </div>
+
                                     {order.finalPaymentUrl ? (
                                       <div className="space-y-2">
-                                        <p className="text-[10px] text-gray-400 font-mono bg-white/5 rounded-lg px-2 py-1.5 truncate select-all" title={order.finalPaymentUrl}>
+                                        <p className="text-[10px] text-gray-400 font-mono bg-white/5 rounded-lg px-2 py-1.5 truncate select-all border border-white/5" title={order.finalPaymentUrl}>
                                           {order.finalPaymentUrl}
                                         </p>
-                                        <button
-                                          onClick={() => copyFinalLink(order)}
-                                          className={`w-full py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                                            copiedId === order.id
-                                              ? 'bg-green-600 text-white'
-                                              : 'bg-white/10 hover:bg-white/20 text-white'
-                                          }`}
-                                        >
-                                          <LinkIcon size={13} />
-                                          {copiedId === order.id ? '¡Copiado!' : 'Copiar enlace'}
-                                        </button>
+
+                                        {order.finalPaymentLinkSentAt && (
+                                          <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                                            <Mail size={11} className="text-accent flex-shrink-0" />
+                                            <span className="truncate">
+                                              Enviado a <strong className="text-gray-200">{order.finalPaymentLinkSentTo || order.customerEmail}</strong> el {new Date(order.finalPaymentLinkSentAt).toLocaleDateString()}
+                                            </span>
+                                          </p>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-2 pt-1">
+                                          <button
+                                            onClick={() => copyFinalLink(order)}
+                                            className={`py-2 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                                              copiedId === order.id
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-white/10 hover:bg-white/20 text-white'
+                                            }`}
+                                            title="Copiar enlace al portapapeles"
+                                          >
+                                            {copiedId === order.id ? <Check size={13} /> : <Copy size={13} />}
+                                            {copiedId === order.id ? '¡Copiado!' : 'Copiar'}
+                                          </button>
+
+                                          <button
+                                            onClick={() => {
+                                              setPreviewOrder(order);
+                                              setSendErrorMessage(null);
+                                              setSendSuccessMessage(null);
+                                            }}
+                                            className="py-2 px-2 text-xs font-bold rounded-lg bg-accent text-bgDark hover:bg-orange-400 transition-all flex items-center justify-center gap-1.5 shadow-md"
+                                            title="Revisar vista previa y enviar al cliente"
+                                          >
+                                            <Eye size={13} />
+                                            {order.finalPaymentLinkSentAt ? 'Reenviar' : 'Revisar / Enviar'}
+                                          </button>
+                                        </div>
                                       </div>
                                     ) : (
-                                      <button
-                                        onClick={() => copyFinalLink(order)}
-                                        className="w-full py-2 text-xs font-bold rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-1.5 transition-all"
-                                      >
-                                        <LinkIcon size={13} />
-                                        Generar enlace
-                                      </button>
+                                      <div className="space-y-2">
+                                        <button
+                                          onClick={async () => {
+                                            await generateFinalLink(order);
+                                          }}
+                                          className="w-full py-2 text-xs font-bold rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-1.5 transition-all"
+                                        >
+                                          <LinkIcon size={13} />
+                                          Generar enlace
+                                        </button>
+                                      </div>
                                     )}
                                   </div>
                                 )}
@@ -289,6 +432,206 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                 ))}
             </div>
         </div>
+
+        {/* MODAL VISTA PREVIA Y ENVÍO DE LINK DE PAGO FINAL */}
+        {previewOrder && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#181818] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/[0.02]">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Mail className="text-accent" size={20} /> Vista Previa - Link de Pago Final
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Revisa los datos del cliente y el contenido del correo antes de enviarlo.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setPreviewOrder(null);
+                    setSendSuccessMessage(null);
+                    setSendErrorMessage(null);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-grow text-sm">
+                {/* Notificaciones */}
+                {sendSuccessMessage && (
+                  <div className="p-4 bg-green-500/20 border border-green-500/40 rounded-xl text-green-300 text-sm flex items-center gap-2.5">
+                    <CheckCircle size={18} className="text-green-400 flex-shrink-0" />
+                    <span className="font-semibold">{sendSuccessMessage}</span>
+                  </div>
+                )}
+                {sendErrorMessage && (
+                  <div className="p-4 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-sm flex items-center gap-2.5">
+                    <AlertCircle size={18} className="text-red-400 flex-shrink-0" />
+                    <span>{sendErrorMessage}</span>
+                  </div>
+                )}
+
+                {/* Ficha Resumen */}
+                <div className="bg-bgDark/60 p-4 rounded-xl border border-white/5 space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-400 block mb-0.5">Nombre del Cliente:</span>
+                      <strong className="text-white text-sm">{previewOrder.customerName || 'No especificado (se usará "Cliente")'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block mb-0.5">Correo Destinatario:</span>
+                      <strong className="text-accent text-sm font-mono">{previewOrder.customerEmail || '⚠ Sin correo registrado'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block mb-0.5">Monto Total Pedido:</span>
+                      <span className="text-gray-200 font-semibold">{formatMoney(previewOrder.price)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block mb-0.5">Saldo Pendiente Final:</span>
+                      <strong className="text-primary text-base font-bold">{formatMoney(previewOrder.price - previewOrder.depositAmount)}</strong>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-white/5">
+                    <span className="text-gray-400 text-xs block mb-1">Enlace de Pago Final:</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={previewOrder.finalPaymentUrl || `${window.location.origin}/final/${previewOrder.id}`}
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-gray-300 select-all"
+                      />
+                      <button
+                        onClick={() => copyFinalLink(previewOrder)}
+                        className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 flex-shrink-0 transition-colors"
+                        title="Copiar enlace"
+                      >
+                        {copiedId === previewOrder.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                        {copiedId === previewOrder.id ? 'Copiado' : 'Copiar'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {previewOrder.finalPaymentLinkSentAt && (
+                    <div className="pt-2 text-xs text-green-400 flex items-center gap-1.5">
+                      <CheckCircle size={14} />
+                      <span>
+                        Enviado previamente a <strong>{previewOrder.finalPaymentLinkSentTo || previewOrder.customerEmail}</strong> el {new Date(previewOrder.finalPaymentLinkSentAt).toLocaleDateString()} a las {new Date(previewOrder.finalPaymentLinkSentAt).toLocaleTimeString()} ({previewOrder.finalPaymentLinkSentCount || 1} {previewOrder.finalPaymentLinkSentCount === 1 ? 'vez' : 'veces'}).
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Vista Previa del Correo que recibirá el cliente */}
+                <div>
+                  <p className="text-xs uppercase font-bold text-gray-400 mb-2 flex items-center gap-1.5">
+                    <Eye size={13} className="text-accent" /> Contenido del correo que recibirá el cliente:
+                  </p>
+
+                  <div className="border border-white/10 rounded-xl overflow-hidden bg-white text-gray-800 shadow-md">
+                    {/* Encabezado correo */}
+                    <div className="bg-[#00695C] text-white p-4 text-center">
+                      <span className="text-2xl block mb-1">🎵</span>
+                      <h4 className="font-bold text-base m-0 tracking-wide">Tu Canción</h4>
+                      <p className="text-xs opacity-90 m-0 mt-0.5">¡Tu canción está lista para su entrega final!</p>
+                    </div>
+
+                    {/* Cuerpo correo */}
+                    <div className="p-5 space-y-4 text-xs sm:text-sm">
+                      <p className="text-base font-bold text-gray-900 m-0">
+                        ¡Hola {previewOrder.customerName || 'Cliente'}! 🎉
+                      </p>
+                      <p className="text-gray-600 leading-relaxed m-0">
+                        Nos alegra informarte que el trabajo de producción de tu canción personalizada ha avanzado con éxito y nos encontramos en la etapa de entrega definitiva.
+                      </p>
+
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1.5">
+                        <div className="flex justify-between text-gray-500 text-xs">
+                          <span>Pedido N°:</span>
+                          <strong className="font-mono text-gray-700">#{previewOrder.id.slice(0, 8)}</strong>
+                        </div>
+                        <div className="flex justify-between text-gray-500 text-xs">
+                          <span>Inversión Total:</span>
+                          <span>{formatMoney(previewOrder.price)}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-500 text-xs">
+                          <span>Anticipo Pagado:</span>
+                          <span className="text-green-600">-{formatMoney(previewOrder.depositAmount)}</span>
+                        </div>
+                        <div className="border-t border-dashed border-gray-300 pt-2 mt-2 flex justify-between items-baseline font-bold">
+                          <span className="text-gray-900">Saldo Final a Pagar:</span>
+                          <span className="text-[#00695C] text-lg">{formatMoney(previewOrder.price - previewOrder.depositAmount)}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-center py-2">
+                        <span className="inline-block bg-[#00695C] text-white font-bold py-3 px-8 rounded-full shadow text-xs uppercase tracking-wider">
+                          Ir a Pagar Saldo Pendiente
+                        </span>
+                      </div>
+
+                      <p className="text-center text-[11px] text-gray-500 font-mono break-all m-0">
+                        {previewOrder.finalPaymentUrl || `${window.location.origin}/final/${previewOrder.id}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer / Acciones */}
+              <div className="p-4 border-t border-white/10 bg-white/[0.02] flex flex-col sm:flex-row justify-between items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => copyFinalLink(previewOrder)}
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  {copiedId === previewOrder.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                  {copiedId === previewOrder.id ? 'Enlace copiado' : 'Copiar enlace'}
+                </button>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewOrder(null);
+                      setSendSuccessMessage(null);
+                      setSendErrorMessage(null);
+                    }}
+                    className="w-1/2 sm:w-auto px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs font-bold transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => sendFinalPaymentEmail(previewOrder)}
+                    disabled={sendingId === previewOrder.id || !previewOrder.customerEmail}
+                    className={`w-1/2 sm:w-auto px-6 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${
+                      sendingId === previewOrder.id || !previewOrder.customerEmail
+                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-60'
+                        : 'bg-primary hover:bg-primaryDark text-white'
+                    }`}
+                  >
+                    {sendingId === previewOrder.id ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={14} />
+                        {previewOrder.finalPaymentLinkSentAt ? 'Reenviar al cliente' : 'Enviar al cliente'}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 };

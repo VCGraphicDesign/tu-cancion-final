@@ -19,6 +19,10 @@
         "function": "sendEmail"
       },
       {
+        "source": "/api/send-final-payment-email",
+        "function": "sendFinalPaymentEmail"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

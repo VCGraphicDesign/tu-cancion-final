@@ -45,6 +45,9 @@ export interface Order {
   finalReceiptUrl?: string;
   finalReceiptFileName?: string;
   finalReceiptUploadedAt?: any;
+  finalPaymentLinkSentAt?: number;
+  finalPaymentLinkSentTo?: string;
+  finalPaymentLinkSentCount?: number;
 }
 
 export interface SelectOption {
