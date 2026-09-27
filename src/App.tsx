@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import PaymentGateway from './pages/PaymentGateway';
 import Admin from './pages/Admin';
 import Legal from './pages/Legal';
+import FinalPayment from './pages/FinalPayment';
 import { User } from './types';
 import { authService } from './services/firebase';
 
@@ -48,6 +49,7 @@ const App: React.FC = () => {
           <Route path="/pay/:orderId" element={<PaymentGateway user={user} />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/admin" element={<Admin user={user} />} />
+          <Route path="/final/:orderId" element={<FinalPayment user={user} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>

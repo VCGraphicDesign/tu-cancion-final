@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { User, Order } from '../types';
 import { Music2, Clock, PlusCircle, CheckCircle, DollarSign } from 'lucide-react';
 import { orderService } from '../services/firebase';
@@ -151,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                             </div>
                             <div className="md:col-span-2">
                               <p className="text-gray-500 text-xs uppercase mb-1">Historia</p>
-                              <p className="italic">"{song.story || 'No proporcionada'}"</p>
+                              <p className="italic" style={{overflowWrap:"break-word",wordBreak:"break-all",minWidth:0}}>"{song.story || 'No proporcionada'}"</p>
                             </div>
                           </div>
                         </div>
@@ -183,7 +183,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </div>
                           <div className="md:col-span-2">
                             <p className="text-gray-500 text-xs uppercase mb-1">Historia</p>
-                            <p className="italic">"{order.request.storyText || 'No proporcionada'}"</p>
+                            <p className="italic" style={{overflowWrap:"break-word",wordBreak:"break-all",minWidth:0}}>"{order.request.storyText || 'No proporcionada'}"</p>
                           </div>
                         </div>
                       </div>

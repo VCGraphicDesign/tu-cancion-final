@@ -4,6 +4,8 @@ import { LayoutDashboard, Music, Play, CheckCircle, Clock, DollarSign, Upload, U
 import { orderService } from '../services/firebase';
 import { Order, User as UserType } from '../types';
 import { getAuth } from 'firebase/auth';
+import { db } from '../services/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 interface AdminProps {
   user: UserType | null;
@@ -17,6 +19,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<{[key: string]: any}>({});
   const [actionError, setActionError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Función para obtener datos del usuario por su ID
   const getUserDetails = async (userId: string) => {
@@ -128,6 +131,34 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   };
 
+  const generateFinalLink = async (order: Order) => {
+    const url = `${window.location.origin}/final/${order.id}`;
+    try {
+      // Guardar enlace en Firestore para recuperarlo después
+      const orderRef = doc(db, 'orders', order.id);
+      await updateDoc(orderRef, { finalPaymentUrl: url });
+      // Actualizar estado local
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, finalPaymentUrl: url } : o));
+    } catch (e) {
+      console.error('Error guardando enlace:', e);
+    }
+    return url;
+  };
+
+  const copyFinalLink = async (order: Order) => {
+    const url = order.finalPaymentUrl || `${window.location.origin}/final/${order.id}`;
+    if (!order.finalPaymentUrl) {
+      await generateFinalLink(order);
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(order.id);
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch (e) {
+      console.error('Error copiando al portapapeles:', e);
+    }
+  };
+
   const filteredOrders = orders.filter(o => {
       if (filter === 'all') return true;
       return o.status === filter;
@@ -209,7 +240,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                                     <div><p className="text-gray-500 text-xs uppercase mb-1">Ocasión</p><p>{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.occasion : 'No especificado'}</p></div>
                                     <div><p className="text-gray-500 text-xs uppercase mb-1">Cantante</p><p>{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.singer : 'No especificado'}</p></div>
                                     <div><p className="text-gray-500 text-xs uppercase mb-1">Instrumentos</p><p>{order.songsData && order.songsData.length > 0 && order.songsData[0]?.instruments && order.songsData[0].instruments.length > 0 ? order.songsData[0].instruments.join(', ') : 'No especificados'}</p></div>
-                                    <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Historia</p><p className="italic">"{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.story : 'No especificada'}"</p></div>
+                                    <div className="md:col-span-2"><p className="text-gray-500 text-xs uppercase mb-1">Historia</p><p className="italic" style={{overflowWrap:"break-word",wordBreak:"break-all",minWidth:0}}>"{order.songsData && order.songsData.length > 0 ? order.songsData[0]?.story : 'No especificada'}"</p></div>
                                     {(order.previewUrl || order.finalUrl) && <div className="md:col-span-2 border-t border-white/5 pt-2"><p className="text-xs text-gray-500">Links: {order.previewUrl && <a href={order.previewUrl} target="_blank" className="text-accent underline mr-2">Avance</a>} {order.finalUrl && <a href={order.finalUrl} target="_blank" className="text-primary underline">Final</a>}</p></div>}
                                 </div>
                             </div>
@@ -219,6 +250,39 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                                 {order.status === 'deposit_paid' && <button onClick={() => handleStatusUpdate(order.id, 'in_progress')} className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"><Clock size={16} className="inline mr-1"/> En Proceso</button>}
                                 {order.status === 'in_progress' && <button onClick={() => handleStatusUpdate(order.id, 'preview_ready')} className="w-full py-2 bg-accent text-bgDark font-bold rounded-lg"><Upload size={16} className="inline mr-1"/> Subir Avance</button>}
                                 {order.status === 'preview_ready' && <button onClick={() => handleStatusUpdate(order.id, 'completed')} className="w-full py-2 bg-primary hover:bg-primaryDark text-white font-bold rounded-lg"><CheckCircle size={16} className="inline mr-1"/> Completado</button>}
+
+                                {/* ENLACE DE PAGO FINAL — visible para pedidos con saldo pendiente */}
+                                {order.status !== 'pending_payment' && order.status !== 'completed' && (
+                                  <div className="mt-1 border-t border-white/10 pt-3">
+                                    <p className="text-[11px] text-gray-500 uppercase font-bold mb-2">Enlace pago final</p>
+                                    {order.finalPaymentUrl ? (
+                                      <div className="space-y-2">
+                                        <p className="text-[10px] text-gray-400 font-mono bg-white/5 rounded-lg px-2 py-1.5 truncate select-all" title={order.finalPaymentUrl}>
+                                          {order.finalPaymentUrl}
+                                        </p>
+                                        <button
+                                          onClick={() => copyFinalLink(order)}
+                                          className={`w-full py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                                            copiedId === order.id
+                                              ? 'bg-green-600 text-white'
+                                              : 'bg-white/10 hover:bg-white/20 text-white'
+                                          }`}
+                                        >
+                                          <LinkIcon size={13} />
+                                          {copiedId === order.id ? '¡Copiado!' : 'Copiar enlace'}
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => copyFinalLink(order)}
+                                        className="w-full py-2 text-xs font-bold rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-1.5 transition-all"
+                                      >
+                                        <LinkIcon size={13} />
+                                        Generar enlace
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
                             </div>
                         </div>
                     </div>

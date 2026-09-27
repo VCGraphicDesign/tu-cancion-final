@@ -38,6 +38,13 @@ export interface Order {
   createdAt: number;
   previewUrl?: string;
   finalUrl?: string;
+  receiptUrl?: string;
+  receiptFileName?: string;
+  receiptUploadedAt?: any;
+  finalPaymentUrl?: string;
+  finalReceiptUrl?: string;
+  finalReceiptFileName?: string;
+  finalReceiptUploadedAt?: any;
 }
 
 export interface SelectOption {

@@ -16,3 +16,17 @@ root.render(
   </React.StrictMode>
 );
 console.log("Estilos cargados");
+
+// Registro del Service Worker para soporte PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => {
+        console.log('[PWA] Service Worker registrado exitosamente en ámbito:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[PWA] Error o aviso al registrar Service Worker:', err);
+      });
+  });
+}

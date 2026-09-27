@@ -84,10 +84,86 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </nav>
 
           {/* Menú móvil */}
-          <button className="md:hidden text-[#1e5d4d]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <button 
+            className="md:hidden text-[#1e5d4d] p-1 focus:outline-none" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+          >
             {isMobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
           </button>
         </div>
+
+        {/* Menú móvil desplegable */}
+        {isMobileMenuOpen && (
+          <nav className="md:hidden border-t border-gray-100 mt-3 pt-4 pb-2 px-6 bg-white flex flex-col gap-4 max-h-[calc(100vh-100px)] overflow-y-auto">
+            <Link 
+              to="/" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2 py-2"
+            >
+              <Home size={20} />
+              Inicio
+            </Link>
+
+            {user && user.email === 'admin@tucancion.app' && (
+              <Link 
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-[15px] font-bold text-[#1e5d4d] flex items-center gap-2 py-2"
+              >
+                <LayoutDashboard size={20} />
+                Admin
+              </Link>
+            )}
+
+            <Link 
+              to="/examples" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-[15px] font-bold text-[#1e5d4d] py-2"
+            >
+              Ejemplos
+            </Link>
+            
+            {user ? (
+              <Link 
+                to="/create" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all text-center"
+              >
+                Empezar a Crear
+              </Link>
+            ) : (
+              <Link 
+                to="/auth"
+                onClick={() => {
+                  sessionStorage.setItem('authDestination', 'create');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="bg-[#007f6e] text-white px-9 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-[#006658] transition-all text-center"
+              >
+                Empezar a Crear
+              </Link>
+            )}
+
+            {user && user.uid && (
+              <button 
+                onClick={async () => {
+                  setIsMobileMenuOpen(false);
+                  await authService.logout();
+                  onLogout();
+                  // Limpiar todo el storage
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  // Forzar recarga completa
+                  window.location.replace('/');
+                }}
+                className="bg-red-600 text-white px-6 py-3 rounded-full text-[15px] font-bold shadow-md hover:bg-red-700 transition-all text-center"
+              >
+                Cerrar Sesión
+              </button>
+            )}
+          </nav>
+        )}
       </header>
 
       {/* CUERPO: Mantiene el fondo original bg-background */}
