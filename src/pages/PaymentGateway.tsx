@@ -215,7 +215,7 @@ const PaymentGateway: React.FC<PaymentGatewayProps> = ({ user }) => {
             <div className="text-white">
               <ExternalLink size={24} />
             </div>
-            <span className="font-bold text-white">Transferencia Directa</span>
+            <span className="font-bold text-white">Ir a mi Banco</span>
             <div className="ml-auto">
               <CheckCircle2 size={20} className="text-white" />
             </div>

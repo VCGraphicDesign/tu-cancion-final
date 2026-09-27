@@ -253,7 +253,7 @@ const FinalPayment: React.FC<FinalPaymentProps> = ({ user }) => {
         <div className="mb-6">
           <button className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-white bg-white/5 cursor-default">
             <ExternalLink size={24} className="text-white" />
-            <span className="font-bold text-white">Transferencia Directa</span>
+            <span className="font-bold text-white">Ir a mi Banco</span>
             <div className="ml-auto"><CheckCircle2 size={20} className="text-white" /></div>
           </button>
         </div>
