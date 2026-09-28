@@ -864,50 +864,49 @@ exports.submitFinalReceipt = functions.https.onRequest(async (req, res) => {
 
   try {
     const Busboy = require('busboy');
-    const path = require('path');
-    const os = require('os');
-    const fs = require('fs');
+    const crypto = require('crypto');
 
-    const { orderId } = req.body || {};
-
-    // Si viene como form-data, el orderId puede estar en los campos
-    let resolvedOrderId = orderId;
+    let resolvedOrderId = (req.body && req.body.orderId) || null;
     let fileBuffer = null;
     let fileName = null;
     let fileMime = null;
 
     await new Promise((resolve, reject) => {
       const busboy = Busboy({ headers: req.headers });
-      const tmpdir = os.tmpdir();
-      const uploads = {};
-      let fields = {};
+      const filePromises = [];
 
       busboy.on('field', (fieldname, val) => {
-        fields[fieldname] = val;
+        if (fieldname === 'orderId') {
+          resolvedOrderId = val;
+        }
       });
 
       busboy.on('file', (fieldname, file, info) => {
         const { filename, mimeType } = info;
-        const filepath = path.join(tmpdir, filename);
-        uploads[fieldname] = { filepath, filename, mimeType };
-        const writeStream = fs.createWriteStream(filepath);
-        file.pipe(writeStream);
+        fileName = filename;
+        fileMime = mimeType;
+        const chunks = [];
+        const filePromise = new Promise((resolveFile) => {
+          file.on('data', (data) => chunks.push(data));
+          file.on('end', () => {
+            fileBuffer = Buffer.concat(chunks);
+            resolveFile();
+          });
+        });
+        filePromises.push(filePromise);
       });
 
       busboy.on('finish', () => {
-        resolvedOrderId = resolvedOrderId || fields.orderId;
-        if (uploads.receipt) {
-          fileBuffer = fs.readFileSync(uploads.receipt.filepath);
-          fileName = uploads.receipt.filename;
-          fileMime = uploads.receipt.mimeType;
-          // Limpiar archivo temporal
-          try { fs.unlinkSync(uploads.receipt.filepath); } catch (_) {}
-        }
-        resolve();
+        Promise.all(filePromises).then(resolve).catch(reject);
       });
 
       busboy.on('error', reject);
-      req.pipe(busboy);
+
+      if (req.rawBody) {
+        busboy.end(req.rawBody);
+      } else {
+        req.pipe(busboy);
+      }
     });
 
     if (!resolvedOrderId || typeof resolvedOrderId !== 'string') {
@@ -934,17 +933,29 @@ exports.submitFinalReceipt = functions.https.onRequest(async (req, res) => {
     // Sanitizar nombre de archivo
     const sanitized = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const storagePath = `receipts-final/public/${resolvedOrderId}/${Date.now()}_${sanitized}`;
+    const token = crypto.randomUUID();
 
-    // Subir a Firebase Storage con Admin SDK
-    const bucket = admin.storage().bucket();
+    // Obtener bucket
+    const bucket = admin.storage().bucket("tu-cancion-final.firebasestorage.app");
     const fileRef = bucket.file(storagePath);
+
     await fileRef.save(fileBuffer, {
-      metadata: { contentType: fileMime || 'application/octet-stream' },
+      metadata: {
+        contentType: fileMime || 'application/octet-stream',
+        metadata: {
+          firebaseStorageDownloadTokens: token,
+        },
+      },
     });
 
-    // Hacer el archivo accesible públicamente para lectura
-    await fileRef.makePublic();
-    const downloadUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+    // Intentar makePublic por si el bucket lo permite, pero no fallar si UBLA está activo
+    try {
+      await fileRef.makePublic();
+    } catch (_) {
+      // Ignorar si Uniform Bucket-Level Access está habilitado
+    }
+
+    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media&token=${token}`;
 
     // Actualizar el pedido en Firestore con Admin SDK
     await db.collection('orders').doc(resolvedOrderId).update({
